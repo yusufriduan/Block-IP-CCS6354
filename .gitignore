@@ -4,7 +4,7 @@
 .vscode
 
 # dependencies
-node_modules
+*/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -14,11 +14,11 @@ node_modules
 !.yarn/versions
 
 # testing
-/coverage
+*/coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
 /build
@@ -36,10 +36,22 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+*/.env*
+*/.env
+*/.env.*
+!*/.env.example
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
+
+# backend
+*/dist
+*/bundle
+*/artifacts
+*/cache
+*/types
+*/.gas-snapshot
+*/snapshots
