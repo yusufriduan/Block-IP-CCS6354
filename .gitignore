@@ -52,6 +52,6 @@ yarn-error.log*
 */bundle
 */artifacts
 */cache
-*/types
+*/*-types
 */.gas-snapshot
 */snapshots
