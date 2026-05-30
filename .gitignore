@@ -2,6 +2,7 @@
 
 # IDE
 .vscode
+*.code-workspace
 
 # dependencies
 */node_modules
@@ -52,6 +53,6 @@ yarn-error.log*
 */bundle
 */artifacts
 */cache
-*/types
+*/*-types
 */.gas-snapshot
 */snapshots
