@@ -5,6 +5,7 @@
   --foreground: #171717;
   --secondary: #BCBCBC;
   --accent: #A2A2A2;
+  --textbox: #5C5C5C;
 }
 
 @theme inline {
@@ -12,6 +13,7 @@
   --color-foreground: var(--foreground);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
+  --color-textbox: var(--textbox);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -22,6 +24,7 @@
     --foreground: #171717;
     --secondary: #BCBCBC;
     --accent: #A2A2A2;
+    --textbox: #5C5C5C;
   }
 }
 

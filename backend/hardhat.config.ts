@@ -1,7 +1,17 @@
-import { defineConfig } from "hardhat/config";
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-gas-reporter";
 
-export default defineConfig({
+const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.28",
+    settings: {
+      evmVersion: "cancun",
+    },
   },
-});
+  gasReporter: {
+    enabled: true,
+  },
+};
+
+export default config;
