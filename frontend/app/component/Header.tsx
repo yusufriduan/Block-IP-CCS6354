@@ -20,6 +20,11 @@ export const Header = ({isConnected, isNotAdmin, isDashboard, isRegister, isCred
         redirect('/', RedirectType.push)
     }
 
+    function redirectToRegisterIP(e: React.MouseEvent<HTMLButtonElement>){
+        e.preventDefault();
+        redirect('/registerIP', RedirectType.push)
+    }
+
     return(
         <div className="w-screen absolute h-16 bg-accent">
             <div id="header-left" className="relative float-left ml-16 h-full flex items-center">
@@ -28,7 +33,7 @@ export const Header = ({isConnected, isNotAdmin, isDashboard, isRegister, isCred
             <div id="header-right" className="relative float-end mr-16 h-full flex flex-row items-center">
                 {isConnected && isNotAdmin && !isRegister ? 
                     <div className="group">
-                        <button className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
+                        <button className="relative mr-8 font-mono text-xl font-semibold cursor-pointer" onClick={redirectToRegisterIP}>
                             Register IP
                             <span className="absolute left-0 bottom-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full bg-foreground"></span>
                         </button>
