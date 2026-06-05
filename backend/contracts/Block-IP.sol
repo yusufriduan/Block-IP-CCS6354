@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract IP is ERC721URIStorage, Ownable {
     
     uint256 private _nextTokenId;
+    uint256 public mintFee = 0.01 ether;
 
     enum IPStatus { Pending, Active, Revoked }
 
@@ -34,7 +35,8 @@ contract IP is ERC721URIStorage, Ownable {
     /// @param to IP creator wallet address
     /// @param ipType  Classification of IP (e.g., patent, trademark, copyright)
     /// @param tokenURI IPFS metadata link (contains the image and title)
-    function mint(address to, string memory ipType, string memory tokenURI) public returns (uint256) {
+    function mint(address to, string memory ipType, string memory tokenURI) public payable returns (uint256) {
+        require(msg.value >= mintFee, "Insufficient minting fee");
         _nextTokenId++;
         uint256 currentTokenId = _nextTokenId;
         _mint(to, currentTokenId);
@@ -85,7 +87,15 @@ contract IP is ERC721URIStorage, Ownable {
     /// @dev Block transfers unless it's initial mint (from address(0))
     function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
         address from = _ownerOf(tokenId);
-        require(from == address(0), "Error: IP Records are non-transferable");
+        require(from == address(0) || to == address(0), "Error: IP Records are non-transferable");
         return super._update(to, tokenId, auth);
+    }
+
+    function withdraw() public onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No ETH available to withdraw");
+        
+        (bool success, ) = owner().call{value: balance}("");
+        require(success, "Withdrawal failed");
     }
 }
