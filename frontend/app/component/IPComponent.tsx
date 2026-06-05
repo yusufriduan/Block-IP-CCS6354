@@ -16,8 +16,8 @@ export const IPComponent = () => {
                 <p className="font-mono text-xs">Date Posted: 02/06/2026</p>
                 <p className="font-mono text-xs">Date Approved: 02/06/2026</p>
                 <div className="flex flex-row justify-center items-center w-full mt-1">
-                    <button className="mr-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Approve</button>
-                    <button className="ml-4 h-6 w-20 bg-green-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Reject</button>
+                    <button className="mr-4 h-6 w-20 bg-green-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Approve</button>
+                    <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Reject</button>
                 </div>
             </div>
         </div>
