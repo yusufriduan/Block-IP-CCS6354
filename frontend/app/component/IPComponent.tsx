@@ -8,7 +8,7 @@ export const IPComponent = () => {
     return(
         <div className="flex flex-col h-48 w-72 bg-accent m-4 rounded-2xl cursor-pointer">
             <div id="ip-image" className="relative h-2/5 w-full top-0 left-0 rounded-t-2xl overflow-hidden">
-                <Image src="/images/example.jpg" alt="example-ip" fill className="object-cover"></Image>
+                <Image src="/images/example.jpg" alt="example-ip" fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" loading="eager"></Image>
             </div>
             <div id="ip-details" className="h-3/5 w-full flex flex-col items-start p-2">
                 <h1 id="ip-title" className="font-mono font-semibold text-md">Nijika Okay (Copyright)</h1>
