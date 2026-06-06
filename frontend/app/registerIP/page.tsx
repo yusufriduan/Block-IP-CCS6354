@@ -25,13 +25,14 @@ export default function registerIP() {
                 isRegister={true}
                 isCredit={false}>
             </Header>
-            <div id="register-section" className="h-screen justify-center items-center flex flex-col">
-                <div id="top-section" className="box-border h-32 w-240 border-2 rounded-3xl border-secondary bg-secondary
+            <div id="register-section" className="h-screen justify-center items-center flex flex-col place-content-center">
+                    
+                <div className="box-border h-32 w-240 border-2 rounded-3xl border-secondary bg-secondary
                 flex flex-row items-center justify-center">
                     <h1 className="font-mono font-bold text-4xl tracking-wider">Register Intellectual Property</h1>
                 </div>
 
-                <div id="content-section" className="m-20 box-border h-60 w-260 border-4 rounded-3xl border-secondary bg-secondary
+                <div id="content-section" className="m-10 box-border h-60 w-260 border-4 rounded-3xl border-secondary bg-secondary
                 grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container">
                     <div>
                         <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Name</h1>

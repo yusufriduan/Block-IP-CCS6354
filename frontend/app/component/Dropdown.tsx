@@ -5,7 +5,7 @@ export default function Dropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedType, setSelectedType] = useState('IP Type');
 
-    const ipType = ['IP Types', 'Image', 'Text'];
+    const ipType = ['IP Types', 'Copyright', 'Trademark', 'Patent'];
     //Insert the IP Types here
 
     const toggleDropdown = () => {
