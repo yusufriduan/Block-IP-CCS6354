@@ -27,7 +27,7 @@ export default function credits(){
             <div id="credits-section" className="h-screen justify-center items-center flex flex-col">
                 <div id="top-section" className="flex flex-row items-center justify-center">
                     <div className="relative w-28 aspect-square mr-8">
-                        <Image src="/images/nijikapoor.png" alt="nijikapoor" fill className="object-cover"></Image>
+                        <Image src="/images/nijikapoor.png" alt="nijikapoor" fill className="object-cover" sizes="112px"></Image>
                     </div>
                     <h1 className="font-mono font-bold text-5xl tracking-wider underline">Credits</h1>
                 </div>

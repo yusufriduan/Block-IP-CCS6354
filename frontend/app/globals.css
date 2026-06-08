@@ -39,3 +39,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.approved{
+  color: greenyellow;
+  text-shadow: 1px 1px 3px #171717;
+}
+
+.pending{
+  color: orange;
+  text-shadow: 1px 1px 3px #171717;
+}
+
+.revoked{
+  color: red;
+  text-shadow: 1px 1px 3px #171717;
+}
+
+.expired{
+  color: darkred;
+  text-shadow: 1px 1px 3px #171717;
+}
