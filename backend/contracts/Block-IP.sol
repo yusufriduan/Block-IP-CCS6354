@@ -17,7 +17,7 @@ contract IP is ERC721URIStorage, Ownable {
     // On-Chain Storage Struct: Only holds properties critical to runtime logic/validation
     struct IPInfo {
         uint256 tokenId;
-        string imageCID;      // Cryptographic anchor used for instant reverse-lookups & duplicate checks
+        bytes32 imageCID;      // Cryptographic anchor used for instant reverse-lookups & duplicate checks
         uint256 dateApproved; // Dynamic administrative checkpoint timestamp
         uint256 dateExpired;  // Lifecycle timeline gatekeeper 
         IPStatus status;      // Active state gatekeeper
@@ -25,7 +25,7 @@ contract IP is ERC721URIStorage, Ownable {
 
     mapping(uint256 => IPInfo) public ipInfos;
 
-    mapping(string => uint256) public imageToTokenId;
+    mapping(bytes32 => uint256) public imageToTokenId;
 
     constructor()
         ERC721("IntellectualProperty", "IP")
@@ -37,7 +37,7 @@ contract IP is ERC721URIStorage, Ownable {
     /// @param metadataCID The IPFS hash pointing to the static JSON payload (Title, Description, IP Type, Date Posted)
     function mint(
         address to, 
-        string memory imageCID, 
+        bytes32 imageCID, 
         string memory metadataCID
     ) public payable returns (uint256) {
         require(msg.value >= mintFee, "Insufficient minting fee");

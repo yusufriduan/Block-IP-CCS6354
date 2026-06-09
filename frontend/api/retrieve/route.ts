@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ethers } from "ethers";
 import contractArtifact from "@/lib/contracts/IP.json";
 
-async function GET(request: NextRequest){
+export async function GET(request: NextRequest){
     try{
         const {searchParams} = new URL(request.url);
         const wallet = searchParams.get("wallet");
@@ -43,12 +43,13 @@ async function GET(request: NextRequest){
                     return {
                         ipName: pinataData.ipName || "Unnamed Asset",
                         ipDescription: pinataData.ipDescription || "No description provided",
+                        ipType: pinataData.ipType || "No type selected",
                         ipPostedDate: pinataData.ipPostedDate || "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
                         ipStatus: Number(intellectualProperty.status),
                         tokenId: intellectualProperty.tokenId.toString(),
-                        ipAsset: intellectualProperty.imageCID
+                        ipAsset: pinataData.asset_url || "N/A"
                     };
 
                 } catch (error) {
@@ -57,6 +58,7 @@ async function GET(request: NextRequest){
                     return {
                         ipName: "Error Loading Data",
                         ipDescription: "Could not retrieve cloud file metadata matching this token.",
+                        ipType: "Error loading type",
                         ipPostedDate: "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
