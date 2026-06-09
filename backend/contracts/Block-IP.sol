@@ -2,12 +2,16 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title Intellectual Property (IP) Contract
 /// @author Yusuf Riduan
 /// @notice A contract for managing intellectual property rights with an optimized hybrid storage pattern
-contract IP is ERC721URIStorage, Ownable {
+contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
+
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    uint256 public totalAdmins;
     
     uint256 private _nextTokenId;
     uint256 public mintFee = 0.01 ether;
@@ -21,15 +25,32 @@ contract IP is ERC721URIStorage, Ownable {
         uint256 dateApproved; // Dynamic administrative checkpoint timestamp
         uint256 dateExpired;  // Lifecycle timeline gatekeeper 
         IPStatus status;      // Active state gatekeeper
+        uint256 approvalVotes; // Active DAO governance mechanism
     }
 
     mapping(uint256 => IPInfo) public ipInfos;
-
     mapping(bytes32 => uint256) public imageToTokenId;
+    mapping(uint256 => mapping(address => bool)) public hasVoted;
 
-    constructor()
-        ERC721("IntellectualProperty", "IP")
-        Ownable(msg.sender) {}
+    constructor() ERC721("IntellectualProperty", "IP") {
+            _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+            _grantRole(ADMIN_ROLE, msg.sender);
+            totalAdmins = 1;
+    }
+
+    
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721URIStorage, AccessControl) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+
+    /// @notice Adds a new admin for voting on IP approvals
+    /// @param newAdmin new Wallet Address to be assigned as admin
+    function addAdmin(address newAdmin) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(!hasRole(ADMIN_ROLE, newAdmin), "Wallet is already an admin");
+        _grantRole(ADMIN_ROLE, newAdmin);
+        totalAdmins++;
+    }
 
     /// @notice Mints a new IP token using the optimized hybrid data split
     /// @param to IP creator wallet address
@@ -39,7 +60,7 @@ contract IP is ERC721URIStorage, Ownable {
         address to, 
         bytes32 imageCID, 
         string memory metadataCID
-    ) public payable returns (uint256) {
+    ) public payable nonReentrant returns (uint256) {
         require(msg.value >= mintFee, "Insufficient minting fee");
         
         // O(1) Constant-Time Protection against plagiarized/duplicate canvas content
@@ -60,7 +81,8 @@ contract IP is ERC721URIStorage, Ownable {
             imageCID: imageCID,
             dateApproved: 0,
             dateExpired: 0,
-            status: IPStatus.Pending
+            status: IPStatus.Pending,
+            approvalVotes: 0
         });
 
         // Globally lock this Image CID to this Token ID 
@@ -68,6 +90,24 @@ contract IP is ERC721URIStorage, Ownable {
 
         return currentTokenId;
     }
+
+    /// @notice Allows admins to vote on a pending IP
+    /// @param tokenId NFT ID to vote
+    /// @param lifespan The duration for which the IP will remain active
+    function vote(uint256 tokenId, uint256 lifespan) public onlyRole(ADMIN_ROLE) {
+        require(ipInfos[tokenId].status == IPStatus.Pending, "IP must be pending to vote");
+        require(!hasVoted[tokenId][msg.sender], "Admin has already voted on this IP");
+        
+        hasVoted[tokenId][msg.sender] = true;
+        ipInfos[tokenId].approvalVotes++;
+
+        if (ipInfos[tokenId].approvalVotes > (totalAdmins / 2)) {
+            ipInfos[tokenId].dateApproved = block.timestamp;
+            ipInfos[tokenId].dateExpired = block.timestamp + lifespan;
+            ipInfos[tokenId].status = IPStatus.Active;
+        }
+    }
+
 
     /// @notice Fetches all IPs owned by a user
     /// @dev Leverages ERC-721 base methods alongside custom runtime struct assembly
@@ -87,20 +127,9 @@ contract IP is ERC721URIStorage, Ownable {
         return userIPs;
     }
 
-    /// @notice Approves an IP, activating its protective framework
-    /// @param tokenId NFT ID to be approved
-    /// @param lifespan How long the IP remains active before expiry
-    function approve(uint256 tokenId, uint256 lifespan) public onlyOwner {
-        require(ipInfos[tokenId].status == IPStatus.Pending, "IP must be pending to approve");
-        
-        ipInfos[tokenId].dateApproved = block.timestamp;
-        ipInfos[tokenId].dateExpired = block.timestamp + lifespan;
-        ipInfos[tokenId].status = IPStatus.Active;
-    }
-
     /// @notice Revokes an IP, changing its status to Revoked
     /// @param tokenId NFT ID to be revoked
-    function revoke(uint256 tokenId) public onlyOwner {
+    function revoke(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
         require(ipInfos[tokenId].status == IPStatus.Active, "IP must be active to revoke");
         require(block.timestamp < ipInfos[tokenId].dateExpired, "IP already expired");
         
@@ -125,11 +154,11 @@ contract IP is ERC721URIStorage, Ownable {
     }
 
     /// @notice Standard administration withdrawal function to pull protocol treasury value
-    function withdraw() public onlyOwner {
+    function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
         uint256 balance = address(this).balance;
         require(balance > 0, "No ETH available to withdraw");
         
-        (bool success, ) = owner().call{value: balance}("");
+        (bool success, ) = msg.sender.call{value: balance}("");
         require(success, "Withdrawal failed");
     }
 }
