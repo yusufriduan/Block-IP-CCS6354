@@ -14,7 +14,7 @@ export async function GET(request: NextRequest){
             );
         }
 
-        const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+        const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
 
         const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest){
                     }
 
                     const pinataData = await response.json();
-
+                    
                     return {
                         ipName: pinataData.ipName || "Unnamed Asset",
                         ipDescription: pinataData.ipDescription || "No description provided",
