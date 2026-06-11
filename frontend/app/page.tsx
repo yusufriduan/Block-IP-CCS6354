@@ -6,6 +6,7 @@ import { Header } from "./component/Header";
 import ConnectionFailFallback from "./component/ConnectionFailFallback";
 import ConnectingInProgress from "./component/ConnectingInProgress";
 import { IPComponent } from "./component/IPComponent";
+import Link from "next/link";
 
 export default function Home() {
 
@@ -14,22 +15,51 @@ export default function Home() {
   const [walletEndAddress, setWalletEndAddress] = useState<String>("");
   const [walletMidStartAddress, setWalletMidStartAddress] = useState<String>("");
   const [walletMidEndAddress, setWalletMidEndAddress] = useState<String>("");
-  const [totalPage, setTotalPage] = useState<number>(2);
+  const [totalPage, setTotalPage] = useState<number>(1);
   const [curPointer, setCurPointer] = useState<number>(1);
-  const [isAdmin, setAdmin] = useState<boolean | null>(null);
+  const [ipDataList, setIpList] = useState<ipInfo[]>();
+
+  interface ipInfo{
+    ipName: string,
+    ipDescription: string,
+    ipType: string,
+    ipPostedDate: number,
+    ipApprovedDate: number,
+    ipExpiredDate: number,
+    ipStatus: string,
+    tokenId: string,
+    ipAsset: string
+  }
 
   useEffect(() => {
     localStorage.setItem("isConnected", "False");
-    connectWallet();
-    
+    connectWallet().then((fullAddress) => {
+      if(fullAddress != null && fullAddress != undefined){
+        getIPs(fullAddress);
+      }
+    });
   }, [])
+
+  async function getIPs(fullAddress: String){
+    const ipData =  await fetch(`/api/retrieve?wallet=${fullAddress}`);
+    const ipDataJson = await ipData.json();
+    if(ipDataJson.error){
+      console.log("Error: ", ipDataJson.error)
+    } else {
+      setIpList(ipDataJson.ipList);
+      if(ipDataJson.ipList){
+        setTotalPage(Math.ceil(ipDataJson.ipList.length/6));
+      }
+    }
+    
+  }
 
   async function connectWallet(){
       try{
         if (!window.ethereum) {
             alert("MetaMask is not installed");
             setIsConnected(false);
-            return;
+            return null;
         }
 
         await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -45,12 +75,11 @@ export default function Home() {
         localStorage.setItem("isConnected", "True");
         setIsConnected(true);
 
-        console.log("address: ", address);
-        console.log("provider: ", provider);
-        console.log("signer: ", signer);
+        return address;
       } catch (error){
           console.log("Error connecting wallet: ", error);
           setIsConnected(false);
+          return null;
       }
     }
 
@@ -67,7 +96,7 @@ export default function Home() {
                 <source src="/videos/food-video.mp4" type="video/mp4"></source>
               </video>
 
-              <div id="overlay-content" className="relative mt-8 flex flex-col w-7/8 h-7/8 bg-background/30 z-50 backdrop-blur-md rounded-2xl">
+              <div id="overlay-content" className="relative mt-8 flex flex-col w-7/8 h-11/12 bg-background/30 z-50 backdrop-blur-md rounded-2xl">
                 <h1 className="text-xl text-shadow-white text-shadow-xs font-mono tracking-wide font-bold mt-4 mb-2 ml-14 text-foreground max-w-full hyphens-auto md:hyphens-none">
                   User <span className="inline-block">{walletStartAddress}</span><span className="block sm:inline-block">{walletMidStartAddress}</span><span className="block sm:inline-block">{walletMidEndAddress}</span><span className="block md:inline-block">{walletEndAddress}&apos;s</span> dashboard
                 </h1>
@@ -75,22 +104,27 @@ export default function Home() {
             isAdmin == true ? 
             (
                 <p className="font-mono text-md text-foreground ml-14 mb-2 text-shadow-white text-shadow-xs">My Intellectual Property:</p>
-                <div className="flex flex-row w-full justify-center items-center">
-                  <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
-                    <button disabled={curPointer === 1} id="back-btn" onClick={() => setCurPointer(curPointer-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
-                    <p>{curPointer}</p>
-                    <button disabled={curPointer === totalPage} id="next-btn" onClick={() => setCurPointer(curPointer+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
-                  </div>             
-                </div>
                 <div className="h-full w-full mb-4 flex justify-center items-center">
-                  <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
-                    <IPComponent />
-                    <IPComponent />
-                    <IPComponent />
-                    <IPComponent />
-                    <IPComponent />
-                    <IPComponent />
-                  </div>
+                    {
+                      ipDataList && ipDataList.length > 0 ? 
+                        <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
+                          <div className="flex flex-row w-full justify-center items-center">
+                            <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
+                              <button disabled={curPointer === 1} id="back-btn" onClick={() => setCurPointer(curPointer-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
+                              <p>{curPointer}</p>
+                              <button disabled={curPointer === totalPage} id="next-btn" onClick={() => setCurPointer(curPointer+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
+                            </div>             
+                          </div>
+                          {ipDataList.slice((curPointer-1) * 6, ((curPointer-1) * 6) + 6).map((ip, index) => (
+                            <IPComponent data={ip} isAdmin={false} key={ip.tokenId || index}/>
+                          ))} 
+                        </div>
+                        :
+                        <div className="flex justify-center items-center flex-col">
+                          <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">Begin Protecting Your IP Now!</p>
+                          <Link href={'/registerIP'} className="mt-4 p-4 bg-background rounded-2xl font-mono text-foreground shadow-sm shadow-black cursor-pointer transition-transform delay-150 duration-300 ease-out hover:scale-110">REGISTER NOW!</Link>
+                        </div>
+                    }
                 </div>
                 )
                 :(

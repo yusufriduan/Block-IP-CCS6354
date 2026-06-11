@@ -5,7 +5,7 @@ export default function Dropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedType, setSelectedType] = useState('IP Type');
 
-    const ipType = ['IP Types', 'Copyright', 'Trademark', 'Patent'];
+    const ipType = ['Copyright', 'Trademark', 'Patent'];
     //Insert the IP Types here
 
     const toggleDropdown = () => {
@@ -29,7 +29,7 @@ export default function Dropdown() {
                                 border-textbox bg-textbox
                                 hover:border-foreground
                                 font-mono text-xl 
-                                tracking-wider place-content-center"
+                                tracking-wider place-content-center cursor-pointer"
                     onClick={toggleDropdown}
                 >
                     <span className="truncate pr-2">{selectedType}</span>

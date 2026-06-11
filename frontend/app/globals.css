@@ -40,22 +40,22 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.approved{
+.Active{
   color: greenyellow;
   text-shadow: 1px 1px 3px #171717;
 }
 
-.pending{
+.Pending{
   color: orange;
   text-shadow: 1px 1px 3px #171717;
 }
 
-.revoked{
+.Revoked{
   color: red;
   text-shadow: 1px 1px 3px #171717;
 }
 
-.expired{
+.Expired{
   color: darkred;
   text-shadow: 1px 1px 3px #171717;
 }
