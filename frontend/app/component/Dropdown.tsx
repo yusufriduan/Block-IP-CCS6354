@@ -28,7 +28,7 @@ export default function Dropdown() {
                                 rounded-3xl border-2
                                 border-textbox bg-textbox
                                 hover:border-foreground
-                                font-mono text-xl 
+                                font-mono text-xl text-white
                                 tracking-wider place-content-center cursor-pointer"
                     onClick={toggleDropdown}
                 >
