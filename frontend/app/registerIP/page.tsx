@@ -7,11 +7,8 @@ import Image from "next/image";
 import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
-import { getIsAdmin } from "@/lib/isAdmin";
-import { useRouter } from 'next/navigation';
 
 export default function registerIP() {
-
     const [connectedStatus, setConnectedStatus] = useState<String>("");
     const [connectionFailed, setConnectionFailed] = useState<boolean>(false);
     const [wallet, setWallet] = useState<String>("");
@@ -22,16 +19,7 @@ export default function registerIP() {
             setConnectedStatus(temp);
         }
 
-        connectWallet().then(async (address) => {
-            if(address != null && address != undefined && address != ""){
-                const isAdmin = await getIsAdmin(address);
-                // avoid admin from accessing this page
-                if(isAdmin){
-                    const router = useRouter();
-                    router.push("/");
-                }
-            }
-        });
+        connectWallet();
         
     }, [])
 
