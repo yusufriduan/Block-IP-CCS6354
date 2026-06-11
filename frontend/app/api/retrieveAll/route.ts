@@ -2,32 +2,32 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ethers } from "ethers";
 import contractArtifact from "@/lib/contracts/IP.json";
 
-export async function GET(request: NextRequest){
-    try{
-        const {searchParams} = new URL(request.url);
-        const wallet = searchParams.get("wallet");
-
-        if (!wallet) {
-            return NextResponse.json(
-                { error: "Missing required query parameter: clientId" },
-                { status: 400 }
-            );
-        }
-
-        const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
+export async function GET() {
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
 
         const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
-        if(contractAddress){
-            const contract = new ethers.Contract(
-                contractAddress,
-                contractArtifact.abi, 
-                provider
-            );
+    if(contractAddress){
+        const contract = new ethers.Contract(
+            contractAddress,
+            contractArtifact.abi, 
+            provider
+        );
 
-            // first pull all ips from smart contract with their dynamic metadata
-            const intellectualPropertyList = await contract.getUserIPs(wallet);
-            const ipPromises = intellectualPropertyList.map(async (intellectualProperty: any) => {
+        try {
+            const nextTokenId = await contract._nextTokenId();
+            const totalTokens = Number(nextTokenId);
+
+            if (totalTokens === 0) return [];
+
+            const promises = [];
+            for (let i = 1; i <= totalTokens; i++) {
+            promises.push(contract.ipInfos(i));
+            }
+
+            const rawResults = await Promise.all(promises);
+
+            const allIPs = rawResults.map(async (intellectualProperty: any) => {
                 try {
                     const metadataURI = await contract.tokenURI(intellectualProperty.tokenId);
                     const metadataUrl = metadataURI.replace("ipfs://", process.env.NEXT_PUBLIC_PINATA_GATEWAY);
@@ -71,19 +71,16 @@ export async function GET(request: NextRequest){
                 }
             });
 
-            // Fire all fetches in parallel. Resolves instantly instead of sequentially slowing down
-            const formattedList = await Promise.all(ipPromises);
-            console.log("Cleaned Array:", formattedList);
             return NextResponse.json(
-                {ipList: formattedList},
+                {ipList: allIPs},
                 {status: 200}
             )
+        } catch (error) {
+            console.error("Error fetching all IP infos:", error);
+            return NextResponse.json(
+                {error: "Internal Server Error"},
+                {status: 500}
+            )
         }
-
-    } catch (e) {
-        return NextResponse.json(
-            {error: "Internal Server Error"},
-            {status: 500}
-        )
     }
 }
