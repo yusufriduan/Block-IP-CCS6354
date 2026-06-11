@@ -71,8 +71,10 @@ export async function GET() {
                 }
             });
 
+            const formattedList = await Promise.all(allIPs);
+
             return NextResponse.json(
-                {ipList: allIPs},
+                {ipList: formattedList},
                 {status: 200}
             )
         } catch (error) {

@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
-
+  const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [walletStartAddress, setWalletStartAddress] = useState<String>("");
   const [walletEndAddress, setWalletEndAddress] = useState<String>("");
@@ -42,12 +42,17 @@ export default function Home() {
       if(fullAddress != null && fullAddress != undefined){
         const checkStatus = async () => {
           try {
-            const userIsAdmin = await getIsAdmin(fullAddress);
+            const isAdminData = await fetch("/api/adminAuth", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({wallet: fullAddress}),
+              credentials: "include",
+            });
+            const isAdminJson = await isAdminData.json();
+            if(isAdminJson.redirect){
+              router.push(isAdminJson.redirect);
+            }
             
-            if(userIsAdmin){
-              const router = useRouter();
-              router.push('/admin');
-            } 
           } catch (error) {
             console.error("Failed to check admin status", error);
           }
