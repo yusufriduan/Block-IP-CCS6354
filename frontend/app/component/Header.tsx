@@ -34,6 +34,15 @@ export const Header = ({isConnected, isNotAdmin, isDashboard, isRegister, isCred
                     </div>
                 )}
 
+                {isConnected && !isNotAdmin && !isDashboard && (
+                    <div className="group">
+                        <Link href="/admin" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
+                            Admin Dashboard
+                            <span className="absolute left-0 bottom-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full bg-foreground"></span>
+                        </Link>
+                    </div>
+                )}
+
                 {isConnected && !isCredit && (
                     <div className="group">
                         <Link href="/credits" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">

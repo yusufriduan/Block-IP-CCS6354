@@ -6,6 +6,8 @@ import { Header } from "./component/Header";
 import ConnectionFailFallback from "./component/ConnectionFailFallback";
 import ConnectingInProgress from "./component/ConnectingInProgress";
 import { IPComponent } from "./component/IPComponent";
+import { getIsAdmin } from "@/lib/isAdmin";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
@@ -26,14 +28,33 @@ export default function Home() {
     ipPostedDate: number,
     ipApprovedDate: number,
     ipExpiredDate: number,
-    ipStatus: string,
+    ipStatus: number,
     tokenId: string,
-    ipAsset: string
+    ipAsset: string,
+    approvalVotes: number
   }
 
   useEffect(() => {
     localStorage.setItem("isConnected", "False");
-    connectWallet().then((fullAddress) => {
+    localStorage.setItem("walletAddress", "");
+    // connect first, then check if user is admin
+    connectWallet().then((fullAddress => {
+      if(fullAddress != null && fullAddress != undefined){
+        const checkStatus = async () => {
+          try {
+            const userIsAdmin = await getIsAdmin(fullAddress);
+            
+            if(userIsAdmin){
+              const router = useRouter();
+              router.push('/admin');
+            } 
+          } catch (error) {
+            console.error("Failed to check admin status", error);
+          }
+        };
+        checkStatus();
+      }   
+    })).then((fullAddress) => {
       if(fullAddress != null && fullAddress != undefined){
         getIPs(fullAddress);
       }
@@ -44,15 +65,27 @@ export default function Home() {
     const ipData =  await fetch(`/api/retrieve?wallet=${fullAddress}`);
     const ipDataJson = await ipData.json();
     if(ipDataJson.error){
-      console.log("Error: ", ipDataJson.error)
+      console.log("Error: ", ipDataJson.error);
     } else {
       setIpList(ipDataJson.ipList);
       if(ipDataJson.ipList){
         setTotalPage(Math.ceil(ipDataJson.ipList.length/6));
       }
-    }
-    
+    }  
   }
+
+  // async function getAllSystemIPs(){
+  //   const ipList = await fetch("/api/retrieveAll");
+  //   const ipListJson = await ipList.json();
+  //   if(ipListJson.error){
+  //     console.log("Error: ", ipListJson.error);
+  //   } else {
+  //     setIpList(ipListJson.ipList);
+  //     if(ipListJson.ipList){
+  //       setTotalPage(Math.ceil(ipListJson.ipList.length/6));
+  //     }
+  //   }
+  // }
 
   async function connectWallet(){
       try{
@@ -67,12 +100,13 @@ export default function Home() {
 
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        const address = await signer.getAddress();;
+        const address = await signer.getAddress();
         setWalletStartAddress(address.slice(0, 10));
         setWalletMidStartAddress(address.slice(10,20));
         setWalletMidEndAddress(address.slice(20,30));
         setWalletEndAddress(address.slice(30));
         localStorage.setItem("isConnected", "True");
+        localStorage.setItem("walletAddress", address);
         setIsConnected(true);
 
         return address;
