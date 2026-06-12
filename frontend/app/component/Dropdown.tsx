@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import Image from "next/image";
 
-export default function Dropdown() {
+interface DropdownProps {
+    changeTypeFunction: (ipType: string) => void;
+}
+
+export default function Dropdown({ changeTypeFunction }: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedType, setSelectedType] = useState('IP Type');
 
@@ -14,6 +18,7 @@ export default function Dropdown() {
 
     const handleSelect = (ipType: string) => {
         setSelectedType(ipType);
+        changeTypeFunction(ipType);
         setIsOpen(false);
     };
 
