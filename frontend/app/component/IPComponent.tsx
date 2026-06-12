@@ -8,15 +8,18 @@ interface IPComponentData{
     ipPostedDate: number,
     ipApprovedDate: number,
     ipExpiredDate: number,
-    ipStatus: string,
+    ipStatus: number,
     tokenId: string,
-    ipAsset: string, 
+    ipAsset: string,
+    approvalVotes: number 
 }
 
 interface IPComponentProp{
     data: IPComponentData
     isAdmin: boolean
 }
+
+const ipStatuses = ["Pending", "Active", "Revoked"];
 
 export const IPComponent = ({data, isAdmin}: IPComponentProp) => {
     return(
@@ -27,7 +30,7 @@ export const IPComponent = ({data, isAdmin}: IPComponentProp) => {
             <div id="ip-details" className="h-3/5 w-full flex flex-col items-start p-2">
                 <h1 id="ip-title" className="font-mono font-semibold text-md">{data.ipName}</h1>
                 <p className="font-mono text-xs">Type: {data.ipType}<span className="ml-1">...</span></p>
-                <p className="font-mono text-xs">Status: <span className={data.ipExpiredDate < Math.floor(Date.now() / 1000) ? "Expired" : data.ipStatus}>{data.ipExpiredDate < Math.floor(Date.now() / 1000) ? "Expired" : data.ipStatus}</span></p>
+                <p className="font-mono text-xs">Status: <span className={data.ipExpiredDate < Math.floor(Date.now() / 1000) ? "Expired" : ipStatuses[data.ipStatus]}>{data.ipExpiredDate < Math.floor(Date.now() / 1000) ? "Expired" : ipStatuses[data.ipStatus]}</span></p>
                 <p className="font-mono text-xs">Date Posted: {new Date(data.ipPostedDate*1000).toLocaleTimeString()}</p>
                 {
                     isAdmin && data.ipApprovedDate === 0 ? 
