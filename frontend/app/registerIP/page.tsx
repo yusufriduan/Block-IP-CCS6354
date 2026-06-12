@@ -7,11 +7,17 @@ import Image from "next/image";
 import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
+import { HtmlContext } from "next/dist/server/route-modules/pages/vendored/contexts/entrypoints";
 
 export default function registerIP() {
     const [connectedStatus, setConnectedStatus] = useState<String>("");
     const [connectionFailed, setConnectionFailed] = useState<boolean>(false);
     const [wallet, setWallet] = useState<String>("");
+
+    // form data
+    const [ipName, setIpName] = useState("");
+    const [ipType, setIpType] = useState("");
+    const [ipFile, setIpFile] = useState<File | null>(null)
 
     useEffect(() => {
         const temp = localStorage.getItem("isConnected");
@@ -55,6 +61,25 @@ export default function registerIP() {
         }
     }
 
+    async function handleSubmit(e: EventTarget){
+        const button = e as HTMLButtonElement;
+        if(button){
+            button.disabled=true;
+            if(ipName.replace(/\s/g, '') != "" && ipType != "" && ipFile != null){
+                if(ipFile.type === "image/jpeg" || ipFile.type === "image/png"){
+                    // call to sc
+                    
+                } else {
+                    alert("Please only enter PNG or JPG/JPEG!");
+                }
+            } else {
+                alert("Please enter all relevant information!")
+            }
+        } else {
+            console.log("No button found what")
+        }
+    }
+
     return (
         <>
             {
@@ -85,9 +110,10 @@ export default function registerIP() {
                                         <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Name</h1>
                                     </div>
                                     <div>
-                                        <input type="text" id="Input IP Name" placeholder="IP Name"
+                                        <input type="text" id="input_ip_name" placeholder="IP Name"
                                             className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground
                                             px-4 py-3 font-mono text-xl tracking-wider place-content-center"
+                                            onChange={(e) => setIpName(e.target.value)}
                                         >
                                         </input>
                                     </div>
@@ -96,7 +122,7 @@ export default function registerIP() {
                                     </div>
                                     <div>
                                         <div id="dropdown box" className="">
-                                            <Dropdown />
+                                            <Dropdown changeTypeFunction={(e) => setIpType(e)} />
                                         </div>
                                     </div>
                                     <div>
@@ -104,20 +130,21 @@ export default function registerIP() {
                                     </div>
                                     <div>
                                         <input type="file" hidden />
-                                        <input type="file" id="Insert IP " placeholder=""
+                                        <input type="file" id="insert_ip" placeholder=""
                                             className="m-3 h-10 w-100 font-mono text-sm border border-textbox rounded-3xl cursor-pointer
                                                         bg-textbox focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground
                                                         file:cursor-pointer file:border-0 file:py-3 file:px-3 file:mr-4
                                                         file:bg-background hover:file:bg-gray-200"
+                                            onChange={(e) => setIpFile(e.target.files?.[0] ?? null)}
                                         >
                                         </input>
-                                        <p className="m-6 mt-1 text-sm " id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
+                                        <p className="m-6 mt-1 text-sm " id="file_input_help">PNG or JPG(MAX. 800x400px).</p>
                                     </div>
 
                                 </div>
 
                                 <div id="submit-section" className="m-1 flex flex-wrap item-center justify-end justify-items-end gap-40">
-                                    <button id="submit-button" className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00]">
+                                    <button id="submit-button" onClick={(e) => handleSubmit(e.target)} className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00]">
                                         <h1 className="font-mono text-xl tracking-wider">Submit</h1>
                                     </button>
                             
