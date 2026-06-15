@@ -38,36 +38,33 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("isConnected", "False");
     localStorage.setItem("walletAddress", "");
-    // connect first, then check if user is admin
-    connectWallet().then((fullAddress => {
-      if(fullAddress != null && fullAddress != undefined){
-        setFullAddress(fullAddress);
-        const checkStatus = async () => {
-          try {
-            const isAdminData = await fetch("/api/adminAuth", {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({wallet: fullAddress}),
-              credentials: "include",
-            });
-            const isAdminJson = await isAdminData.json();
-            if(isAdminJson.redirect){
-              router.push(isAdminJson.redirect);
-            }
-            
-          } catch (error) {
-            console.error("Failed to check admin status", error);
-          }
-        };
-        checkStatus();
-        return fullAddress;
-      }   
-    })).then((fullAddress) => {
-      if(fullAddress != null && fullAddress != undefined){
-        getIPs(fullAddress);
+
+    const init = async () => {
+      const fullAddress = await connectWallet();
+      if (!fullAddress) return;
+
+      setFullAddress(fullAddress);
+
+      try {
+        const isAdminData = await fetch("/api/adminAuth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet: fullAddress }),
+          credentials: "include",
+        });
+        const isAdminJson = await isAdminData.json();
+        if (isAdminJson.redirect) {
+          router.push(isAdminJson.redirect);
+        }
+      } catch (error) {
+        console.error("Failed to check admin status", error);
       }
-    });
-  }, [])
+
+      await getIPs(fullAddress);
+    };
+
+    init();
+  }, []);
 
   async function getIPs(fullAddress: String){
     const ipData =  await fetch(`/api/retrieve?wallet=${fullAddress}`);
@@ -81,19 +78,6 @@ export default function Home() {
       }
     }  
   }
-
-  // async function getAllSystemIPs(){
-  //   const ipList = await fetch("/api/retrieveAll");
-  //   const ipListJson = await ipList.json();
-  //   if(ipListJson.error){
-  //     console.log("Error: ", ipListJson.error);
-  //   } else {
-  //     setIpList(ipListJson.ipList);
-  //     if(ipListJson.ipList){
-  //       setTotalPage(Math.ceil(ipListJson.ipList.length/6));
-  //     }
-  //   }
-  // }
 
   async function connectWallet(){
       try{
