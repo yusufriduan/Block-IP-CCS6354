@@ -8,6 +8,7 @@ import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
 import contractArtifact from "@/lib/contracts/IP.json";
+import { useRouter } from "next/router";
 
 export default function RegisterIP() {
     const [connectedStatus, setConnectedStatus] = useState<boolean>(false);
@@ -22,24 +23,59 @@ export default function RegisterIP() {
     const [ipFile, setIpFile] = useState<File | null>(null);
     const [ipDesc, setIpDesc] = useState("");
 
+    const router = useRouter();
+
     useEffect(() => {
-        const handleAccountsChanged = () => {
+        async function init(){
+            const wallet = await connectWallet();
+            try {
+                const isAdminData = await fetch("/api/adminAuth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ wallet: wallet }),
+                    credentials: "include",
+                });
+                const isAdminJson = await isAdminData.json();
+                if (isAdminJson.redirect) {
+                    router.push(isAdminJson.redirect);
+                }
+            } catch (error) {
+                console.error("Failed to check admin status", error);
+            }
+        }
+        
+        init();
+
+        const handleAccountsChanged = (accounts: string[]) => {
+            console.log("Wallet changed detected!", accounts);
+            
             fetch('/api/logout', { method: 'POST' })
-            .then(() => {
-            window.location.reload();
-            })
-            .catch(err => console.error("Logout failed during account change", err));
-        };
+                .then(() => {
+                    setWallet("");
+                    setSigner(null);
+                    setConnectedStatus(false);
 
-        connectWallet();
+                    router.push("/");
+                })
+                .catch(err => console.error("Logout failed during account change", err));
+            };
 
-        if (window.ethereum) {
-            window.ethereum.on("accountsChanged", handleAccountsChanged);
+            const provider = window.ethereum;
+            if (provider) {
+                provider.on('accountsChanged', handleAccountsChanged);
+            } else {
+            const handleLoad = () => {
+                if (window.ethereum) {
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                }
+            };
+            window.addEventListener('load', handleLoad);
         }
 
         return () => {
-            if (window.ethereum && window.ethereum.removeListener) {
-                window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+            const provider = window.ethereum;
+            if (provider && provider.removeListener) {
+                provider.removeListener('accountsChanged', handleAccountsChanged);
             }
         };
     }, []);

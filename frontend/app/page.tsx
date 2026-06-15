@@ -75,13 +75,22 @@ export default function Home() {
         .catch(err => console.error("Logout failed during account change", err));
     };
 
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
+    const provider = window.ethereum;
+    if (provider) {
+      provider.on('accountsChanged', handleAccountsChanged);
+    } else {
+      const handleLoad = () => {
+        if (window.ethereum) {
+          window.ethereum.on('accountsChanged', handleAccountsChanged);
+        }
+      };
+      window.addEventListener('load', handleLoad);
     }
 
     return () => {
-      if (window.ethereum && window.ethereum.removeListener) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      const provider = window.ethereum;
+      if (provider && provider.removeListener) {
+        provider.removeListener('accountsChanged', handleAccountsChanged);
       }
     };
   }, []);
