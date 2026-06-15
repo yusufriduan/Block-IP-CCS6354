@@ -31,6 +31,8 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
     mapping(uint256 => IPInfo) public ipInfos;
     mapping(bytes32 => uint256) public imageToTokenId;
     mapping(uint256 => mapping(address => bool)) public hasVoted;
+    mapping (uint256 => uint256) public revokeVoteCount;
+    mapping(uint256 => mapping(address => bool)) public hasRevokeVoted;
 
     constructor() ERC721("IntellectualProperty", "IP") {
             _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -91,10 +93,10 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
         return currentTokenId;
     }
 
-    /// @notice Allows admins to vote on a pending IP
+    /// @notice Allows admins to vote on a pending IP to be active
     /// @param tokenId NFT ID to vote
     /// @param lifespan The duration for which the IP will remain active
-    function vote(uint256 tokenId, uint256 lifespan) public onlyRole(ADMIN_ROLE) {
+    function mintVote(uint256 tokenId, uint256 lifespan) public onlyRole(ADMIN_ROLE) {
         require(ipInfos[tokenId].status == IPStatus.Pending, "IP must be pending to vote");
         require(!hasVoted[tokenId][msg.sender], "Admin has already voted on this IP");
         
@@ -127,13 +129,20 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
         return userIPs;
     }
 
-    /// @notice Revokes an IP, changing its status to Revoked
-    /// @param tokenId NFT ID to be revoked
-    function revoke(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
+    /// @notice Allows admins to vote on a active IP to be revoke
+    /// @param tokenId NFT ID to vote
+    function revokeVote(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
         require(ipInfos[tokenId].status == IPStatus.Active, "IP must be active to revoke");
         require(block.timestamp < ipInfos[tokenId].dateExpired, "IP already expired");
+        require(!hasRevokeVoted[tokenId][msg.sender], "Admin has already voted on this IP");
         
-        ipInfos[tokenId].status = IPStatus.Revoked;
+        hasRevokeVoted[tokenId][msg.sender] = true;
+        revokeVoteCount[tokenId]++;
+
+        if ((revokeVoteCount[tokenId] * 2) >= totalAdmins) {
+            ipInfos[tokenId].dateExpired = block.timestamp;
+            ipInfos[tokenId].status = IPStatus.Revoked;
+        }
     }
 
     /// @notice Real-time validation helper to assess live registry enforcement status
