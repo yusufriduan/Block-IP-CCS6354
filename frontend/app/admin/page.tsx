@@ -1,10 +1,8 @@
 'use client'
-import Link from "next/dist/client/link";
 import { Header } from "../component/Header";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
 import { IPComponent } from "../component/IPComponent";
-import { getIsAdmin } from "@/lib/isAdmin";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
@@ -12,7 +10,6 @@ import { ethers } from "ethers";
 export default function admin() {
     const router = useRouter();
     const [isConnected, setIsConnected] = useState<boolean | null>(null);
-    const [fullWalletAddress, setFullWalletAddress] = useState<string>("");
     const [walletStartAddress, setWalletStartAddress] = useState<String>("");
     const [walletEndAddress, setWalletEndAddress] = useState<String>("");
     const [walletMidStartAddress, setWalletMidStartAddress] = useState<String>("");
@@ -140,18 +137,22 @@ export default function admin() {
                             <div className="h-full w-full mb-4 flex justify-center items-center">
                                 {
                                 approvedIPs && approvedIPs.length > 0 ? 
-                                    <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
-                                    <div className="flex flex-row w-full justify-center items-center">
-                                        <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
-                                        <button disabled={curPointerApproved === 1} id="back-btn" onClick={() => setCurPointerApproved(curPointerApproved-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
-                                        <p>{curPointerApproved}</p>
-                                        <button disabled={curPointerApproved === Math.ceil(approvedIPs.length/6)} id="next-btn" onClick={() => setCurPointerApproved(curPointerApproved+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
-                                        </div>             
-                                    </div>
-                                    {approvedIPs.slice((curPointerApproved-1) * 6, ((curPointerApproved-1) * 6) + 6).map((ip, index) => (
-                                        <IPComponent data={ip} isAdmin={true} key={ip.tokenId || index}/>
-                                    ))} 
-                                    </div>
+                                    <>
+                                        <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
+                                            {approvedIPs.slice((curPointerApproved-1) * 6, ((curPointerApproved-1) * 6) + 6).map((ip, index) => (
+                                                <IPComponent data={ip} isAdmin={true} key={ip.tokenId || index}/>
+                                            ))} 
+                                        </div>
+                                        {approvedIPs.length > 6 && (
+                                            <div className="flex flex-row w-full justify-center items-center">
+                                                <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
+                                                    <button disabled={curPointerApproved === 1} id="back-btn" onClick={() => setCurPointerApproved(curPointerApproved-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
+                                                    <p>{curPointerApproved}</p>
+                                                    <button disabled={curPointerApproved === Math.ceil(approvedIPs.length/6)} id="next-btn" onClick={() => setCurPointerApproved(curPointerApproved+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                     :
                                     <div className="flex justify-center items-center flex-col">
                                         <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">No IP has been requested yet.</p>
@@ -165,18 +166,22 @@ export default function admin() {
                             <div className="h-full w-full mb-4 flex justify-center items-center">
                                 {
                                 pendingIPs && pendingIPs.length > 0 ? 
-                                    <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
-                                    <div className="flex flex-row w-full justify-center items-center">
-                                        <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
-                                        <button disabled={curPointerPending === 1} id="back-btn" onClick={() => setCurPointerPending(curPointerPending-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
-                                        <p>{curPointerPending}</p>
-                                        <button disabled={curPointerPending === Math.ceil(pendingIPs.length/6)} id="next-btn" onClick={() => setCurPointerPending(curPointerPending+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
-                                        </div>             
-                                    </div>
-                                    {pendingIPs.slice((curPointerPending-1) * 6, ((curPointerPending-1) * 6) + 6).map((ip, index) => (
-                                        <IPComponent data={ip} isAdmin={true} key={ip.tokenId || index}/>
-                                    ))} 
-                                    </div>
+                                    <>
+                                        <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
+                                            {pendingIPs.slice((curPointerPending-1) * 6, ((curPointerPending-1) * 6) + 6).map((ip, index) => (
+                                                <IPComponent data={ip} isAdmin={true} key={ip.tokenId || index}/>
+                                            ))}
+                                        </div>
+                                        {pendingIPs.length > 6 && (
+                                            <div className="flex flex-row w-full justify-center items-center">
+                                                <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
+                                                    <button disabled={curPointerPending === 1} id="back-btn" onClick={() => setCurPointerPending(curPointerPending-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
+                                                    <p>{curPointerPending}</p>
+                                                    <button disabled={curPointerPending === Math.ceil(pendingIPs.length/6)} id="next-btn" onClick={() => setCurPointerPending(curPointerPending+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                     :
                                     <div className="flex justify-center items-center flex-col">
                                     <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">No IP has been requested yet.</p>
