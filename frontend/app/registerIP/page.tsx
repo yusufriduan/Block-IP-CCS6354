@@ -10,7 +10,7 @@ import ConnectingInProgress from "../component/ConnectingInProgress";
 import contractArtifact from "@/lib/contracts/IP.json";
 
 export default function RegisterIP() {
-    const [connectedStatus, setConnectedStatus] = useState<string>("");
+    const [connectedStatus, setConnectedStatus] = useState<boolean>(false);
     const [connectionFailed, setConnectionFailed] = useState<boolean>(false);
     const [wallet, setWallet] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -23,19 +23,12 @@ export default function RegisterIP() {
     const [ipDesc, setIpDesc] = useState("");
 
     useEffect(() => {
-        const handleAccountsChanged = (accounts: string[]) => {
-            if (accounts.length > 0) {
-                connectWallet();
-                setConnectedStatus("True");
-                localStorage.setItem("walletAddress", accounts[0]);
-                localStorage.setItem("isConnected", "True");
-            } else {
-                setWallet("");
-                setSigner(null);
-                setConnectedStatus("");
-                localStorage.removeItem("walletAddress");
-                localStorage.removeItem("isConnected");
-            }
+        const handleAccountsChanged = () => {
+            fetch('/api/logout', { method: 'POST' })
+            .then(() => {
+            window.location.reload();
+            })
+            .catch(err => console.error("Logout failed during account change", err));
         };
 
         connectWallet();
@@ -148,9 +141,8 @@ export default function RegisterIP() {
 
                 setWallet(address);
                 setSigner(signer);
-                setConnectedStatus("True");
-                localStorage.setItem("isConnected", "True");
-                localStorage.setItem("walletAddress", address);
+                setConnectionFailed(false);
+                setConnectedStatus(true);
                 return address;
             } else {
                 setConnectionFailed(true);
@@ -167,12 +159,12 @@ export default function RegisterIP() {
         <>
             {connectionFailed ? (
                 <ConnectionFailFallback />
-            ) : connectedStatus !== "True" ? (
+            ) : connectedStatus === false  ? (
                 <ConnectingInProgress />
             ) : (
                 <div>
                     <Header
-                        isConnected={connectedStatus === "True"}
+                        isConnected={connectedStatus}
                         isNotAdmin={true}
                         isDashboard={false}
                         isRegister={true}

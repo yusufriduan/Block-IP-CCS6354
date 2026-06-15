@@ -47,7 +47,6 @@ export async function GET(request: NextRequest){
                     
                     return {
                         ipName: pinataData.ipName || "Unnamed Asset",
-                        ipDescription: pinataData.ipDescription || "No description provided",
                         ipType: pinataData.ipType || "No type selected",
                         ipPostedDate: pinataData.ipPostedDate || "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
@@ -63,7 +62,6 @@ export async function GET(request: NextRequest){
 
                     return {
                         ipName: "Error Loading Data",
-                        ipDescription: "Could not retrieve cloud file metadata matching this token.",
                         ipType: "Error loading type",
                         ipPostedDate: "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
