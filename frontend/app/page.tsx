@@ -17,6 +17,7 @@ export default function Home() {
   const [walletEndAddress, setWalletEndAddress] = useState<String>("");
   const [walletMidStartAddress, setWalletMidStartAddress] = useState<String>("");
   const [walletMidEndAddress, setWalletMidEndAddress] = useState<String>("");
+  const [fullAddress, setFullAddress] = useState("");
   const [totalPage, setTotalPage] = useState<number>(1);
   const [curPointer, setCurPointer] = useState<number>(1);
   const [ipDataList, setIpList] = useState<ipInfo[]>();
@@ -40,6 +41,7 @@ export default function Home() {
     // connect first, then check if user is admin
     connectWallet().then((fullAddress => {
       if(fullAddress != null && fullAddress != undefined){
+        setFullAddress(fullAddress);
         const checkStatus = async () => {
           try {
             const isAdminData = await fetch("/api/adminAuth", {
@@ -58,6 +60,7 @@ export default function Home() {
           }
         };
         checkStatus();
+        return fullAddress;
       }   
     })).then((fullAddress) => {
       if(fullAddress != null && fullAddress != undefined){
@@ -153,7 +156,7 @@ export default function Home() {
                             </div>             
                           </div>
                           {ipDataList.slice((curPointer-1) * 6, ((curPointer-1) * 6) + 6).map((ip, index) => (
-                            <IPComponent data={ip} isAdmin={false} key={ip.tokenId || index}/>
+                            <IPComponent data={ip} isAdmin={false} wallet={fullAddress} key={ip.tokenId || index}/>
                           ))} 
                         </div>
                         :
