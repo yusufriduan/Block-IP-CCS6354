@@ -17,7 +17,8 @@ export default function registerIP() {
     // form data
     const [ipName, setIpName] = useState("");
     const [ipType, setIpType] = useState("");
-    const [ipFile, setIpFile] = useState<File | null>(null)
+    const [ipFile, setIpFile] = useState<File | null>(null);
+    const [ipDesc, setIpDesc] = useState("");
 
     useEffect(() => {
         const temp = localStorage.getItem("isConnected");
@@ -99,12 +100,12 @@ export default function registerIP() {
                             </Header>
                             <div id="register-section" className="h-screen justify-center items-center flex flex-col place-content-center">
                                     
-                                <div className="box-border h-32 w-240 border-2 rounded-3xl border-secondary bg-secondary
+                                <div className="box-border h-30 w-240 border-2 rounded-3xl border-secondary bg-secondary
                                 flex flex-row items-center justify-center">
                                     <h1 className="font-mono font-bold text-4xl tracking-wider">Register Intellectual Property</h1>
                                 </div>
 
-                                <div id="content-section" className="m-10 box-border h-60 w-260 border-4 rounded-3xl border-secondary bg-secondary
+                                <div id="content-section" className="m-10 box-border h-80 w-260 border-4 rounded-3xl border-secondary bg-secondary
                                 grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container">
                                     <div>
                                         <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Name</h1>
@@ -126,6 +127,17 @@ export default function registerIP() {
                                         </div>
                                     </div>
                                     <div>
+                                        <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Desccription</h1>
+                                    </div>
+                                    <div>
+                                        <input type="text" id="input_ip_description" placeholder="IP Description"
+                                            className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground
+                                            px-4 py-3 font-mono text-xl tracking-wider place-content-center"
+                                            onChange={(e) => setIpDesc(e.target.value)}
+                                        >
+                                        </input>
+                                    </div>
+                                    <div>
                                     <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-start">Intellectual Property</h1>
                                     </div>
                                     <div>
@@ -140,10 +152,10 @@ export default function registerIP() {
                                         </input>
                                         <p className="m-6 mt-1 text-sm " id="file_input_help">PNG or JPG(MAX. 800x400px).</p>
                                     </div>
-
+                                
                                 </div>
 
-                                <div id="submit-section" className="m-1 flex flex-wrap item-center justify-end justify-items-end gap-40">
+                                <div id="submit-section" className=" flex flex-wrap item-center justify-end justify-items-end gap-40">
                                     <button id="submit-button" onClick={(e) => handleSubmit(e.target)} className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00]">
                                         <h1 className="font-mono text-xl tracking-wider">Submit</h1>
                                     </button>

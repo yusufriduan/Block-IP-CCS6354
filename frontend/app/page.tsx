@@ -139,6 +139,7 @@ export default function Home() {
                 <h1 className="text-xl text-shadow-white text-shadow-xs font-mono tracking-wide font-bold mt-4 mb-2 ml-14 text-foreground max-w-full hyphens-auto md:hyphens-none">
                   User <span className="inline-block">{walletStartAddress}</span><span className="block sm:inline-block">{walletMidStartAddress}</span><span className="block sm:inline-block">{walletMidEndAddress}</span><span className="block md:inline-block">{walletEndAddress}&apos;s</span> dashboard
                 </h1>
+                  
                 <p className="font-mono text-md text-foreground ml-14 mb-2 text-shadow-white text-shadow-xs">My Intellectual Property:</p>
                 <div className="h-full w-full mb-4 flex justify-center items-center">
                     {
@@ -162,6 +163,21 @@ export default function Home() {
                         </div>
                     }
                 </div>
+                {/* )
+                :(
+                   <p className="font-mono text-md text-foreground ml-14 mb-2 text-shadow-white text-shadow-xs">My Intellectual Property:</p>
+                <div className="flex flex-row w-full justify-center items-center">
+                  <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
+                    <button disabled={curPointer === 1} id="back-btn" onClick={() => setCurPointer(curPointer-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
+                    <p>{curPointer}</p>
+                    <button disabled={curPointer === totalPage} id="next-btn" onClick={() => setCurPointer(curPointer+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
+                  </div>             
+                </div>
+                <div className="h-full w-full mb-4 flex justify-center items-center">
+                  <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
+                  </div>
+                </div>
+                ) */}
               </div>
             </div> 
             : 
