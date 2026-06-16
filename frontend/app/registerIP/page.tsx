@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
 import contractArtifact from "@/lib/contracts/IP.json";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function RegisterIP() {
     const [connectedStatus, setConnectedStatus] = useState<boolean>(false);
@@ -212,7 +212,7 @@ export default function RegisterIP() {
                             <h1 className="font-mono font-bold text-4xl tracking-wider">Register Intellectual Property</h1>
                         </div>
 
-                        <div id="content-section" className="m-10 box-border h-80 w-260 border-4 rounded-3xl border-secondary bg-secondary grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container">
+                        <div id="content-section" className="m-7 box-border h-80 w-260 border-4 rounded-3xl border-secondary bg-secondary grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container backdrop-blur-md">
                             <div>
                                 <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Name</h1>
                             </div>
@@ -221,7 +221,7 @@ export default function RegisterIP() {
                                     type="text" 
                                     value={ipName}
                                     placeholder="IP Name"
-                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center"
+                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
                                     onChange={(e) => setIpName(e.target.value)}
                                 />
                             </div>
@@ -243,7 +243,7 @@ export default function RegisterIP() {
                                     type="text" 
                                     value={ipDesc}
                                     placeholder="IP Description"
-                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center"
+                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
                                     onChange={(e) => setIpDesc(e.target.value)}
                                 />
                             </div>
@@ -274,7 +274,9 @@ export default function RegisterIP() {
                             <button 
                                 type="button" 
                                 onClick={handleClear}
-                                className="box-border h-10 w-40 border-4 border-radius rounded-3xl border-reject bg-reject hover:border-[#E90000] hover:bg-[#E90000]"
+                                className={`box-border h-10 w-40 border-4 border-radius rounded-3xl border-reject bg-reject 
+                                        hover:border-[#E90000] hover:bg-[#E90000] transition-opacity duration-200
+                                        ${ipName.trim() ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
                             >
                                 <h1 className="font-mono text-xl tracking-wider">Clear All</h1>
                             </button>
