@@ -6,7 +6,6 @@ import { Header } from "./component/Header";
 import ConnectionFailFallback from "./component/ConnectionFailFallback";
 import ConnectingInProgress from "./component/ConnectingInProgress";
 import { IPComponent } from "./component/IPComponent";
-import { getIsAdmin } from "@/lib/isAdmin";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -21,6 +20,7 @@ export default function Home() {
   const [totalPage, setTotalPage] = useState<number>(1);
   const [curPointer, setCurPointer] = useState<number>(1);
   const [ipDataList, setIpList] = useState<ipInfo[]>();
+  const [loadingIP, setLoadingIP] = useState<boolean>(true);
 
   interface ipInfo{
     ipName: string,
@@ -32,11 +32,11 @@ export default function Home() {
     ipStatus: number,
     tokenId: string,
     ipAsset: string,
-    approvalVotes: number
+    approvalVotes: number,
+    owner: string
   }
 
   useEffect(() => {
-    localStorage.setItem("isConnected", "False");
     localStorage.setItem("walletAddress", "");
 
     const init = async () => {
@@ -61,6 +61,7 @@ export default function Home() {
       }
 
       await getIPs(fullAddress);
+      setLoadingIP(false);
     };
 
     init();
@@ -70,6 +71,7 @@ export default function Home() {
       
       fetch('/api/logout', { method: 'POST' })
         .then(() => {
+          localStorage.setItem("walletAddress", "");
           window.location.reload();
         })
         .catch(err => console.error("Logout failed during account change", err));
@@ -126,7 +128,6 @@ export default function Home() {
         setWalletMidStartAddress(address.slice(10,20));
         setWalletMidEndAddress(address.slice(20,30));
         setWalletEndAddress(address.slice(30));
-        localStorage.setItem("isConnected", "True");
         localStorage.setItem("walletAddress", address);
         setIsConnected(true);
 
@@ -140,7 +141,7 @@ export default function Home() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
-      <Header isConnected={isConnected} isDashboard={true} isRegister={false} isNotAdmin={true} isCredit={false}></Header>
+      <Header isDashboard={true} isRegister={false} isCredit={false}></Header>
       {
           isConnected === null ? <ConnectingInProgress></ConnectingInProgress>
           :
@@ -159,7 +160,11 @@ export default function Home() {
                 <p className="font-mono text-md text-foreground ml-14 mb-2 text-shadow-white text-shadow-xs">My Intellectual Property:</p>
                 <div className="h-full w-full mb-4 flex justify-center items-center">
                     {
-                      ipDataList && ipDataList.length > 0 ? 
+                      loadingIP ? 
+                      <p className="font-mono text-3xl font-bold">Fetching Intellectual Properties...</p>
+                      :
+                      (
+                        ipDataList && ipDataList.length > 0 ? 
                       <div className="w-11/12">
                         
                           <div className="h-full w-full rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
@@ -181,6 +186,7 @@ export default function Home() {
                           <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">Begin Protecting Your IP Now!</p>
                           <Link href={'/registerIP'} className="mt-4 p-4 bg-background rounded-2xl font-mono text-foreground shadow-sm shadow-black cursor-pointer transition-transform delay-150 duration-300 ease-out hover:scale-110">REGISTER NOW!</Link>
                         </div>
+                      )
                     }
                 </div>
               </div>

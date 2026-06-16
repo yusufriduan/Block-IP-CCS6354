@@ -36,27 +36,26 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
+        const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
 
-        // const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+        const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
-        // if(contractAddress){
-        //     const contract = new ethers.Contract(
-        //         contractAddress,
-        //         contractArtifact.abi, 
-        //         provider
-        //     );
+        if(contractAddress){
+            const contract = new ethers.Contract(
+                contractAddress,
+                contractArtifact.abi, 
+                provider
+            );
 
-        //     const assetCIDHash = ethers.keccak256(ethers.toUtf8Bytes(assetUpload.cid));
-        //     await contract.mint(wallet, assetCIDHash, metadataUpload.cid);
+            const assetCIDHash = ethers.keccak256(ethers.toUtf8Bytes(assetUpload.cid));
+            await contract.mint(wallet, assetCIDHash, metadataUpload.cid);
 
-
-        return NextResponse.json({ 
-            success: true, 
-            metadataCID: metadataUpload.cid,
-            assetCID: assetUpload.cid
-        }, { status: 200 });
-
+            return NextResponse.json({ 
+                success: true, 
+                metadataCID: metadataUpload.cid,
+                assetCID: assetUpload.cid
+            }, { status: 200 });
+        }
         
     } catch (e) {
         return NextResponse.json(

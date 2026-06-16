@@ -29,6 +29,7 @@ export async function GET(request: NextRequest){
             const intellectualPropertyList = await contract.getUserIPs(wallet);
             const ipPromises = intellectualPropertyList.map(async (intellectualProperty: any) => {
                 try {
+                    const owner = await contract.ownerOf(intellectualProperty.tokenId);
                     const metadataURI = await contract.tokenURI(intellectualProperty.tokenId);
                     const cleanGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY?.endsWith('/') 
                         ? process.env.NEXT_PUBLIC_PINATA_GATEWAY 
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest){
                     
                     return {
                         ipName: pinataData.ipName || "Unnamed Asset",
+                        ipDescription: pinataData.ipDescription || "N/A",   
                         ipType: pinataData.ipType || "No type selected",
                         ipPostedDate: pinataData.ipPostedDate || "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
@@ -55,6 +57,7 @@ export async function GET(request: NextRequest){
                         tokenId: intellectualProperty.tokenId.toString(),
                         ipAsset: `https://${pinataData.asset_url}` || "N/A",
                         approvalVotes: Number(intellectualProperty.approvalVotes),
+                        owner: owner
                     };
 
                 } catch (error) {
@@ -62,14 +65,16 @@ export async function GET(request: NextRequest){
 
                     return {
                         ipName: "Error Loading Data",
+                        ipDescription: "Error loading Data",
                         ipType: "Error loading type",
                         ipPostedDate: "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
                         ipStatus: Number(intellectualProperty.status),
                         tokenId: intellectualProperty.tokenId.toString(),
-                        ipAsset: null,
+                        ipAsset: '/images/example.jpg',
                         approvalVotes: Number(intellectualProperty.approvalVotes),
+                        owner: null
                     };
                 }
             });

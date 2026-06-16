@@ -3,9 +3,11 @@
 import Image from "next/image"
 import "../globals.css";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface IPComponentData{
     ipName: string,
+    ipDescription: string,
     ipType: string,
     ipPostedDate: number,
     ipApprovedDate: number,
@@ -13,7 +15,8 @@ interface IPComponentData{
     ipStatus: number,
     tokenId: string,
     ipAsset: string,
-    approvalVotes: number 
+    approvalVotes: number,
+    owner: string 
 }
 
 interface IPComponentProp{
@@ -26,8 +29,15 @@ const ipStatuses = ["Pending", "Active", "Revoked"];
 
 export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
+    const router = useRouter();
+
     const [voteStatus, setVoteStatus] = useState<boolean>(false);
     const [totalAdmins, setTotalAdmins] = useState<number>(1);
+
+    function handleOnClick(){
+        const dataJson = JSON.stringify(data);
+        router.push(`/details?data=${encodeURIComponent(dataJson)}`);
+    }
 
     useEffect(() => {
         async function getHasVoted(tokenId: string, wallet: string) {
@@ -47,18 +57,21 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
         }
         
         getHasVoted(data.tokenId, wallet);
+
+        const ipContainer = document.querySelector("#ip-component-container") as HTMLDivElement;
+        ipContainer.addEventListener('click', handleOnClick);
     }, [])
 
     return(
-        <div className="flex flex-col h-48 w-72 bg-accent m-4 rounded-2xl cursor-pointer">
+        <div id="ip-component-container" className="flex flex-col h-48 w-72 bg-accent m-4 rounded-2xl cursor-pointer">
             <div id="ip-image" className="relative h-2/5 w-full top-0 left-0 rounded-t-2xl overflow-hidden">
                 <Image src={data.ipAsset} alt="ip-asset" fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" loading="eager"></Image>
             </div>
             <div id="ip-details" className="h-3/5 w-full flex flex-col items-start p-2">
                 <h1 id="ip-title" className="font-mono font-semibold text-md">{data.ipName}</h1>
-                <p className="font-mono text-xs">Type: {data.ipType}<span className="ml-1">...</span></p>
-                <p className="font-mono text-xs">Status: <span className={data.ipExpiredDate < Math.floor(Date.now() / 1000) ? "Expired" : ipStatuses[data.ipStatus]}>{data.ipExpiredDate < Math.floor(Date.now() / 1000) ? "Expired" : ipStatuses[data.ipStatus]}</span></p>
-                <p className="font-mono text-xs">Date Posted: {new Date(data.ipPostedDate*1000).toLocaleTimeString()}</p>
+                <p className="font-mono text-xs">Type: {data.ipType}</p>
+                <p className="font-mono text-xs">Status: <span className={(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0) ? "Expired" : ipStatuses[data.ipStatus]}>{(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0) ? "Expired" : ipStatuses[data.ipStatus]}</span></p>
+                <p className="font-mono text-xs">Date Posted: {new Date(data.ipPostedDate*1000).toLocaleString()}</p>
                 {
                     isAdmin ? 
                         data.ipApprovedDate === 0 ? 
