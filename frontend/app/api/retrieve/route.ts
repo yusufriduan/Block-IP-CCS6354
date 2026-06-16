@@ -9,7 +9,7 @@ export async function GET(request: NextRequest){
 
         if (!wallet) {
             return NextResponse.json(
-                { error: "Missing required query parameter: clientId" },
+                { error: "Missing required query parameter: wallet" },
                 { status: 400 }
             );
         }
@@ -30,7 +30,12 @@ export async function GET(request: NextRequest){
             const ipPromises = intellectualPropertyList.map(async (intellectualProperty: any) => {
                 try {
                     const metadataURI = await contract.tokenURI(intellectualProperty.tokenId);
-                    const metadataUrl = metadataURI.replace("ipfs://", process.env.NEXT_PUBLIC_PINATA_GATEWAY);
+                    const cleanGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY?.endsWith('/') 
+                        ? process.env.NEXT_PUBLIC_PINATA_GATEWAY 
+                        : `${process.env.NEXT_PUBLIC_PINATA_GATEWAY}/`;
+
+                    const cid = metadataURI.replace("ipfs://", "");
+                    const metadataUrl = `https://${cleanGateway}ipfs/${cid}`;
                     
                     const response = await fetch(metadataUrl);
 
@@ -42,14 +47,13 @@ export async function GET(request: NextRequest){
                     
                     return {
                         ipName: pinataData.ipName || "Unnamed Asset",
-                        ipDescription: pinataData.ipDescription || "No description provided",
                         ipType: pinataData.ipType || "No type selected",
                         ipPostedDate: pinataData.ipPostedDate || "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
                         ipStatus: Number(intellectualProperty.status),
                         tokenId: intellectualProperty.tokenId.toString(),
-                        ipAsset: pinataData.asset_url || "N/A",
+                        ipAsset: `https://${pinataData.asset_url}` || "N/A",
                         approvalVotes: Number(intellectualProperty.approvalVotes),
                     };
 
@@ -58,14 +62,13 @@ export async function GET(request: NextRequest){
 
                     return {
                         ipName: "Error Loading Data",
-                        ipDescription: "Could not retrieve cloud file metadata matching this token.",
                         ipType: "Error loading type",
                         ipPostedDate: "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
                         ipStatus: Number(intellectualProperty.status),
                         tokenId: intellectualProperty.tokenId.toString(),
-                        ipAsset: intellectualProperty.imageCID,
+                        ipAsset: null,
                         approvalVotes: Number(intellectualProperty.approvalVotes),
                     };
                 }

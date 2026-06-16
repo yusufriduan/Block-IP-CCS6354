@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse} from "next/server";
 import { ethers } from "ethers";
 import contractArtifact from "@/lib/contracts/IP.json";
 

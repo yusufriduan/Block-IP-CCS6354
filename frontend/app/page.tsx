@@ -17,6 +17,7 @@ export default function Home() {
   const [walletEndAddress, setWalletEndAddress] = useState<String>("");
   const [walletMidStartAddress, setWalletMidStartAddress] = useState<String>("");
   const [walletMidEndAddress, setWalletMidEndAddress] = useState<String>("");
+  const [fullAddress, setFullAddress] = useState("");
   const [totalPage, setTotalPage] = useState<number>(1);
   const [curPointer, setCurPointer] = useState<number>(1);
   const [ipDataList, setIpList] = useState<ipInfo[]>();
@@ -37,34 +38,62 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("isConnected", "False");
     localStorage.setItem("walletAddress", "");
-    // connect first, then check if user is admin
-    connectWallet().then((fullAddress => {
-      if(fullAddress != null && fullAddress != undefined){
-        const checkStatus = async () => {
-          try {
-            const isAdminData = await fetch("/api/adminAuth", {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({wallet: fullAddress}),
-              credentials: "include",
-            });
-            const isAdminJson = await isAdminData.json();
-            if(isAdminJson.redirect){
-              router.push(isAdminJson.redirect);
-            }
-            
-          } catch (error) {
-            console.error("Failed to check admin status", error);
-          }
-        };
-        checkStatus();
-      }   
-    })).then((fullAddress) => {
-      if(fullAddress != null && fullAddress != undefined){
-        getIPs(fullAddress);
+
+    const init = async () => {
+      const fullAddress = await connectWallet();
+      if (!fullAddress) return;
+
+      setFullAddress(fullAddress);
+
+      try {
+        const isAdminData = await fetch("/api/adminAuth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet: fullAddress }),
+          credentials: "include",
+        });
+        const isAdminJson = await isAdminData.json();
+        if (isAdminJson.redirect) {
+          router.push(isAdminJson.redirect);
+        }
+      } catch (error) {
+        console.error("Failed to check admin status", error);
       }
-    });
-  }, [])
+
+      await getIPs(fullAddress);
+    };
+
+    init();
+
+    const handleAccountsChanged = (accounts: string[]) => {
+      console.log("Wallet changed detected!", accounts);
+      
+      fetch('/api/logout', { method: 'POST' })
+        .then(() => {
+          window.location.reload();
+        })
+        .catch(err => console.error("Logout failed during account change", err));
+    };
+
+    const provider = window.ethereum;
+    if (provider) {
+      provider.on('accountsChanged', handleAccountsChanged);
+    } else {
+      const handleLoad = () => {
+        if (window.ethereum) {
+          window.ethereum.on('accountsChanged', handleAccountsChanged);
+        }
+      };
+      window.addEventListener('load', handleLoad);
+    }
+
+    return () => {
+      const provider = window.ethereum;
+      if (provider && provider.removeListener) {
+        provider.removeListener('accountsChanged', handleAccountsChanged);
+      }
+    };
+  }, []);
 
   async function getIPs(fullAddress: String){
     const ipData =  await fetch(`/api/retrieve?wallet=${fullAddress}`);
@@ -78,19 +107,6 @@ export default function Home() {
       }
     }  
   }
-
-  // async function getAllSystemIPs(){
-  //   const ipList = await fetch("/api/retrieveAll");
-  //   const ipListJson = await ipList.json();
-  //   if(ipListJson.error){
-  //     console.log("Error: ", ipListJson.error);
-  //   } else {
-  //     setIpList(ipListJson.ipList);
-  //     if(ipListJson.ipList){
-  //       setTotalPage(Math.ceil(ipListJson.ipList.length/6));
-  //     }
-  //   }
-  // }
 
   async function connectWallet(){
       try{
@@ -144,18 +160,22 @@ export default function Home() {
                 <div className="h-full w-full mb-4 flex justify-center items-center">
                     {
                       ipDataList && ipDataList.length > 0 ? 
-                        <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
-                          <div className="flex flex-row w-full justify-center items-center">
-                            <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
+                      <div className="w-11/12">
+                        
+                          <div className="h-full w-full rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
+                          {ipDataList.slice((curPointer-1) * 6, ((curPointer-1) * 6) + 6).map((ip, index) => (
+                            <IPComponent data={ip} isAdmin={false} wallet={fullAddress} key={ip.tokenId || index}/>
+                          ))} 
+                        </div>
+                        <div className="flex flex-row w-full justify-center items-center">
+                            <div className="grid grid-cols-3 place-items-center bg-background p-1 mt-2">
                               <button disabled={curPointer === 1} id="back-btn" onClick={() => setCurPointer(curPointer-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
                               <p>{curPointer}</p>
                               <button disabled={curPointer === totalPage} id="next-btn" onClick={() => setCurPointer(curPointer+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
                             </div>             
                           </div>
-                          {ipDataList.slice((curPointer-1) * 6, ((curPointer-1) * 6) + 6).map((ip, index) => (
-                            <IPComponent data={ip} isAdmin={false} key={ip.tokenId || index}/>
-                          ))} 
-                        </div>
+                      </div>
+                        
                         :
                         <div className="flex justify-center items-center flex-col">
                           <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">Begin Protecting Your IP Now!</p>

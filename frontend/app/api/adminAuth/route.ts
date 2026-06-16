@@ -1,5 +1,6 @@
 import { getIsAdmin } from "@/lib/isAdmin";
 import { NextResponse, NextRequest } from "next/server";
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest){
     try{
@@ -13,8 +14,15 @@ export async function POST(request: NextRequest){
 
         const isAdmin = await getIsAdmin(wallet);
         const response = NextResponse.json({ redirect: isAdmin ? "/admin" : null });
-        if (isAdmin) {
-            response.cookies.set("admin_session", wallet, {
+        const jwtToken = process.env.JWT_SECRET_KEY
+        if (isAdmin && jwtToken) {
+            const token = jwt.sign(
+                { wallet: wallet }, 
+                jwtToken,
+                { expiresIn: '8h' }
+            );
+            
+            response.cookies.set("admin_session", token, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "strict",
