@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
 import contractArtifact from "@/lib/contracts/IP.json";
-import { useRouter } from "next/router";
+import { useRouter } from 'next/navigation';
 
 export default function RegisterIP() {
     const [connectedStatus, setConnectedStatus] = useState<boolean>(false);
@@ -54,7 +54,7 @@ export default function RegisterIP() {
                     setWallet("");
                     setSigner(null);
                     setConnectedStatus(false);
-
+                    localStorage.setItem("walletAddress", "");
                     router.push("/");
                 })
                 .catch(err => console.error("Logout failed during account change", err));
@@ -200,8 +200,6 @@ export default function RegisterIP() {
             ) : (
                 <div>
                     <Header
-                        isConnected={connectedStatus}
-                        isNotAdmin={true}
                         isDashboard={false}
                         isRegister={true}
                         isCredit={false}

@@ -1,4 +1,5 @@
 import { getIsAdmin } from "@/lib/isAdmin";
+import { getIsOwner } from "@/lib/isOwner";
 import { NextResponse, NextRequest } from "next/server";
 import jwt from 'jsonwebtoken';
 
@@ -29,6 +30,17 @@ export async function POST(request: NextRequest){
                 maxAge: 60 * 60 * 8,
                 path: "/",
             });
+
+            const isOwner = await getIsOwner(wallet);
+            if(isOwner){
+                response.cookies.set("owner_session", token, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "strict",
+                    maxAge: 60 * 60 * 8,
+                    path: "/",
+                });
+            }
         }
 
         return response;

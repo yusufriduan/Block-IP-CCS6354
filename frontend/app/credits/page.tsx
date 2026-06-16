@@ -1,25 +1,10 @@
-"use client";
-
 import { Header } from "../component/Header";
-import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function credits(){
-
-   const [connectedStatus, setConnectedStatus] = useState<String>("");
-
-   useEffect(() => {
-    const temp = localStorage.getItem("isConnected");
-    if(temp != null){
-        setConnectedStatus(temp);
-    }
-   }, [])
-
     return(
         <div>
             <Header 
-            isConnected={ connectedStatus === "True"} 
-            isNotAdmin={true} 
             isDashboard={false} 
             isRegister={false} 
             isCredit={true}>

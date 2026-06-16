@@ -14,6 +14,7 @@ export default function admin() {
     const [walletEndAddress, setWalletEndAddress] = useState<String>("");
     const [walletMidStartAddress, setWalletMidStartAddress] = useState<String>("");
     const [walletMidEndAddress, setWalletMidEndAddress] = useState<String>("");
+    const [walletFullAddress, setWalletFullAddress] = useState<string>("");
     const [totalPage, setTotalPage] = useState<number>(1);
     const [approvedIPs, setApprovedIPs] = useState<ipInfo[]>([]);
     const [pendingIPs, setPendingIPs] = useState<ipInfo[]>([]);
@@ -30,11 +31,11 @@ export default function admin() {
         ipStatus: number,
         tokenId: string,
         ipAsset: string,
-        approvalVotes: number
+        approvalVotes: number,
+        owner: string
     }
 
     useEffect(() => {
-        localStorage.setItem("isConnected", "False");
         localStorage.setItem("walletAddress", "");
 
         // The cleaner async wrapper function
@@ -58,7 +59,7 @@ export default function admin() {
                     setWalletMidStartAddress(address.slice(10,20));
                     setWalletMidEndAddress(address.slice(20,30));
                     setWalletEndAddress(address.slice(30));
-                    localStorage.setItem("isConnected", "True");
+                    setWalletFullAddress(address);
                     localStorage.setItem("walletAddress", address);
                     setIsConnected(true);
 
@@ -104,9 +105,8 @@ export default function admin() {
             
             fetch('/api/logout', { method: 'POST' })
                 .then(() => {
-                  localStorage.setItem("isConnected", "False");
                   localStorage.setItem("walletAddress", "");
-                  router.push("/");
+                  window.location.reload();
                 })
                 .catch(err => console.error("Logout failed during account change", err));
             };
@@ -128,6 +128,7 @@ export default function admin() {
             if (provider && provider.removeListener) {
                 provider.removeListener('accountsChanged', handleAccountsChanged);
             }
+        }
     }, []);
 
     async function getAllSystemIPs(){
@@ -143,11 +144,9 @@ export default function admin() {
         }
     }
 
-    
-
     return (
         <div className="h-screen w-screen flex flex-col overflow-hidden">
-        <Header isConnected={isConnected} isDashboard={true} isRegister={true} isNotAdmin={true} isCredit={false}></Header>
+        <Header isDashboard={true} isRegister={false} isCredit={false}></Header>
         { isConnected === null ? <ConnectingInProgress></ConnectingInProgress> :
             (
                 isConnected === true ?
@@ -170,7 +169,7 @@ export default function admin() {
                                     <>
                                         <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
                                             {approvedIPs.slice((curPointerApproved-1) * 6, ((curPointerApproved-1) * 6) + 6).map((ip, index) => (
-                                                <IPComponent data={ip} isAdmin={true} key={ip.tokenId || index}/>
+                                                <IPComponent data={ip} isAdmin={true} wallet={walletFullAddress} key={ip.tokenId || index}/>
                                             ))} 
                                         </div>
                                         {approvedIPs.length > 6 && (
@@ -199,7 +198,7 @@ export default function admin() {
                                     <>
                                         <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
                                             {pendingIPs.slice((curPointerPending-1) * 6, ((curPointerPending-1) * 6) + 6).map((ip, index) => (
-                                                <IPComponent data={ip} isAdmin={true} key={ip.tokenId || index}/>
+                                                <IPComponent data={ip} isAdmin={true} wallet={walletFullAddress} key={ip.tokenId || index}/>
                                             ))}
                                         </div>
                                         {pendingIPs.length > 6 && (
