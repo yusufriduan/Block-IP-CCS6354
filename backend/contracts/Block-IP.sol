@@ -16,7 +16,7 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
     uint256 private _nextTokenId;
     uint256 public mintFee = 0.01 ether;
 
-    enum IPStatus { Pending, Active, Revoked }
+    enum IPStatus { Pending, Active, Revoked, Rejected }
 
     // On-Chain Storage Struct: Only holds properties critical to runtime logic/validation
     struct IPInfo {
@@ -31,6 +31,8 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
     mapping(uint256 => IPInfo) public ipInfos;
     mapping(bytes32 => uint256) public imageToTokenId;
     mapping(uint256 => mapping(address => bool)) public hasVoted;
+    mapping (uint256 => uint256) public rejectVoteCount;
+    mapping(uint256 => mapping(address => bool)) public hasRejectVoted;
     mapping (uint256 => uint256) public revokeVoteCount;
     mapping(uint256 => mapping(address => bool)) public hasRevokeVoted;
 
@@ -93,20 +95,37 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
         return currentTokenId;
     }
 
-    /// @notice Allows admins to vote on a pending IP to be active
+    /// @notice Allows admins to vote approve on a pending IP
     /// @param tokenId NFT ID to vote
     /// @param lifespan The duration for which the IP will remain active
     function mintVote(uint256 tokenId, uint256 lifespan) public onlyRole(ADMIN_ROLE) {
-        require(ipInfos[tokenId].status == IPStatus.Pending, "IP must be pending to vote");
-        require(!hasVoted[tokenId][msg.sender], "Admin has already voted on this IP");
-        
+        require(ipInfos[tokenId].status == IPStatus.Pending, "IP must be pending to vote");        
+        require(!hasVoted[tokenId][msg.sender], "Admin has already voted to approve");
+        require(!hasRejectVoted[tokenId][msg.sender], "Admin has already voted to reject");
+
         hasVoted[tokenId][msg.sender] = true;
         ipInfos[tokenId].approvalVotes++;
 
-        if (ipInfos[tokenId].approvalVotes > (totalAdmins / 2)) {
+        if ((ipInfos[tokenId].approvalVotes * 2) >= totalAdmins) {
             ipInfos[tokenId].dateApproved = block.timestamp;
             ipInfos[tokenId].dateExpired = block.timestamp + lifespan;
             ipInfos[tokenId].status = IPStatus.Active;
+        }
+    }
+
+    /// @notice Allows admins to vote reject on a pending IP
+    /// @param tokenId NFT ID to vote
+    function rejectVote(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
+        require(ipInfos[tokenId].status == IPStatus.Pending, "IP must be pending to vote");
+        require(!hasRejectVoted[tokenId][msg.sender], "Admin has already voted to reject this IP");
+        require(!hasVoted[tokenId][msg.sender], "Admin has already voted to approve this IP");
+
+        hasRejectVoted[tokenId][msg.sender] = true;
+        rejectVoteCount[tokenId]++;
+
+        if ((rejectVoteCount[tokenId] * 2) >= totalAdmins) {
+            ipInfos[tokenId].status = IPStatus.Rejected;
+            ipInfos[tokenId].dateExpired = block.timestamp;
         }
     }
 
