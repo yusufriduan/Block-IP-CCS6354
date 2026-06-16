@@ -26,7 +26,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                 const isOwnerCheck = await fetch("/api/isOwner");
                 const isOwnerJson = await isOwnerCheck.json();
                 if(isOwnerJson.isOwner){
-                    setIsNotOwner(true);
+                    setIsNotOwner(false);
                 }
             } else {
                 setIsNotAdmin(true);
@@ -73,7 +73,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
 
                 {!isNotOwner && !isRegister && (
                     <div className="group">
-                        <Link href="/admin_register" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
+                        <Link href="/register_admin" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Register Admins
                             <span className="absolute left-0 bottom-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full bg-foreground"></span>
                         </Link>
