@@ -5,15 +5,15 @@ import { useEffect, useState } from "react";
 import admin from "../admin/page";
 
 interface headerProps {
-    isConnected: boolean | null;
     isDashboard: boolean;
     isRegister: boolean;
     isCredit: boolean;
 }
 
-export const Header = ({isConnected, isDashboard, isRegister, isCredit} : headerProps) => {
+export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
 
     const [isNotAdmin, setIsNotAdmin] = useState<boolean>(true);
+    const [isNotOwner, setIsNotOwner] = useState<boolean>(true);
 
     useEffect(() => {
         async function adminCheck(){
@@ -22,8 +22,15 @@ export const Header = ({isConnected, isDashboard, isRegister, isCredit} : header
 
             if(json.isAdmin){
                 setIsNotAdmin(false);
+
+                const isOwnerCheck = await fetch("/api/isOwner");
+                const isOwnerJson = await isOwnerCheck.json();
+                if(isOwnerJson.isOwner){
+                    setIsNotOwner(true);
+                }
             } else {
                 setIsNotAdmin(true);
+                setIsNotOwner(true);
             }
         }
         
@@ -37,7 +44,7 @@ export const Header = ({isConnected, isDashboard, isRegister, isCredit} : header
             </div>
             <div id="header-right" className="relative float-end mr-16 h-full flex flex-row items-center">
                 
-                {isConnected && isNotAdmin && !isRegister && (
+                {isNotAdmin && !isRegister && (
                     <div className="group">
                         <Link href="/registerIP" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Register IP
@@ -46,7 +53,7 @@ export const Header = ({isConnected, isDashboard, isRegister, isCredit} : header
                     </div>
                 )}
 
-                {isConnected && isNotAdmin && !isDashboard && (
+                {isNotAdmin && !isDashboard && (
                     <div className="group">
                         <Link href="/" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Dashboard
@@ -55,7 +62,7 @@ export const Header = ({isConnected, isDashboard, isRegister, isCredit} : header
                     </div>
                 )}
 
-                {isConnected && !isNotAdmin && !isDashboard && (
+                {!isNotAdmin && !isDashboard && (
                     <div className="group">
                         <Link href="/admin" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Admin Dashboard
@@ -64,7 +71,7 @@ export const Header = ({isConnected, isDashboard, isRegister, isCredit} : header
                     </div>
                 )}
 
-                {isConnected && !isNotAdmin && !isRegister && (
+                {!isNotOwner && !isRegister && (
                     <div className="group">
                         <Link href="/admin_register" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Register Admins
@@ -73,7 +80,7 @@ export const Header = ({isConnected, isDashboard, isRegister, isCredit} : header
                     </div>
                 )}
 
-                {isConnected && !isCredit && (
+                {!isCredit && (
                     <div className="group">
                         <Link href="/credits" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Credits

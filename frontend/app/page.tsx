@@ -37,7 +37,6 @@ export default function Home() {
   }
 
   useEffect(() => {
-    localStorage.setItem("isConnected", "False");
     localStorage.setItem("walletAddress", "");
 
     const init = async () => {
@@ -60,7 +59,7 @@ export default function Home() {
       } catch (error) {
         console.error("Failed to check admin status", error);
       }
-      
+
       await getIPs(fullAddress);
       setLoadingIP(false);
     };
@@ -72,6 +71,7 @@ export default function Home() {
       
       fetch('/api/logout', { method: 'POST' })
         .then(() => {
+          localStorage.setItem("walletAddress", "");
           window.location.reload();
         })
         .catch(err => console.error("Logout failed during account change", err));
@@ -128,7 +128,6 @@ export default function Home() {
         setWalletMidStartAddress(address.slice(10,20));
         setWalletMidEndAddress(address.slice(20,30));
         setWalletEndAddress(address.slice(30));
-        localStorage.setItem("isConnected", "True");
         localStorage.setItem("walletAddress", address);
         setIsConnected(true);
 
@@ -142,7 +141,7 @@ export default function Home() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
-      <Header isConnected={isConnected} isDashboard={true} isRegister={false} isCredit={false}></Header>
+      <Header isDashboard={true} isRegister={false} isCredit={false}></Header>
       {
           isConnected === null ? <ConnectingInProgress></ConnectingInProgress>
           :

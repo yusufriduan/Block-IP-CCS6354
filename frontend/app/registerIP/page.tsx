@@ -54,7 +54,7 @@ export default function RegisterIP() {
                     setWallet("");
                     setSigner(null);
                     setConnectedStatus(false);
-
+                    localStorage.setItem("walletAddress", "");
                     router.push("/");
                 })
                 .catch(err => console.error("Logout failed during account change", err));
@@ -200,7 +200,6 @@ export default function RegisterIP() {
             ) : (
                 <div>
                     <Header
-                        isConnected={connectedStatus}
                         isDashboard={false}
                         isRegister={true}
                         isCredit={false}

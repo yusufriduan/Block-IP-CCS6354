@@ -36,7 +36,6 @@ export default function admin() {
     }
 
     useEffect(() => {
-        localStorage.setItem("isConnected", "False");
         localStorage.setItem("walletAddress", "");
 
         // The cleaner async wrapper function
@@ -61,7 +60,6 @@ export default function admin() {
                     setWalletMidEndAddress(address.slice(20,30));
                     setWalletEndAddress(address.slice(30));
                     setWalletFullAddress(address);
-                    localStorage.setItem("isConnected", "True");
                     localStorage.setItem("walletAddress", address);
                     setIsConnected(true);
 
@@ -107,9 +105,8 @@ export default function admin() {
             
             fetch('/api/logout', { method: 'POST' })
                 .then(() => {
-                  localStorage.setItem("isConnected", "False");
                   localStorage.setItem("walletAddress", "");
-                  router.push("/");
+                  window.location.reload();
                 })
                 .catch(err => console.error("Logout failed during account change", err));
             };
@@ -147,11 +144,9 @@ export default function admin() {
         }
     }
 
-    
-
     return (
         <div className="h-screen w-screen flex flex-col overflow-hidden">
-        <Header isConnected={isConnected} isDashboard={true} isRegister={false} isCredit={false}></Header>
+        <Header isDashboard={true} isRegister={false} isCredit={false}></Header>
         { isConnected === null ? <ConnectingInProgress></ConnectingInProgress> :
             (
                 isConnected === true ?

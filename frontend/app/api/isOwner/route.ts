@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest){
-    const isAdmin = request.cookies.get("admin_session");
+    const isOwner = request.cookies.get("owner_session");
 
     return NextResponse.json(
-        {isAdmin: isAdmin ? true : false},
+        {isOwner: isOwner ? true : false},
         {status: 200}
     )
 }

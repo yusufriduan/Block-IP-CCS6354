@@ -49,7 +49,7 @@ export default function Details(){
 
     return(
     <div className="h-screen w-screen flex flex-col overflow-auto sm:overflow-hidden">
-      <Header isConnected={true} isDashboard={false} isRegister={false} isCredit={false}></Header>
+      <Header isDashboard={false} isRegister={false} isCredit={false}></Header>
 
             <div id="dashboard-ui" className="flex flex-col w-screen mt-8 h-screen justify-center items-center bg-background">
               <div id="overlay-content" className="relative mt-8 flex flex-col w-7/8 h-11/12 bg-secondary z-50 rounded-2xl">
