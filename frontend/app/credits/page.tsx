@@ -18,8 +18,7 @@ export default function credits(){
     return(
         <div>
             <Header 
-            isConnected={ connectedStatus === "True"} 
-            isNotAdmin={true} 
+            isConnected={ connectedStatus === "True"}
             isDashboard={false} 
             isRegister={false} 
             isCredit={true}>

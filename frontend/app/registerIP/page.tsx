@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
 import contractArtifact from "@/lib/contracts/IP.json";
-import { useRouter } from "next/router";
+import { useRouter } from 'next/navigation';
 
 export default function RegisterIP() {
     const [connectedStatus, setConnectedStatus] = useState<boolean>(false);
@@ -201,7 +201,6 @@ export default function RegisterIP() {
                 <div>
                     <Header
                         isConnected={connectedStatus}
-                        isNotAdmin={true}
                         isDashboard={false}
                         isRegister={true}
                         isCredit={false}
