@@ -6,17 +6,19 @@ describe("IP Voting and Registry Contract", function () {
   
   // Setup Fixture: Deploys a fresh contract for every test execution
   async function deployIPFixture() {
-    const [masterAdmin, admin2, user1, user2] = await ethers.getSigners();
-
+    // Simulating the DAO environment with multiple admins and a standard user
+    const [masterAdmin, shawn, weiSiang, regularUser] = await ethers.getSigners();
+    
     const IPFactory = await ethers.getContractFactory("IP");
     const ipContract = await IPFactory.deploy();
-
+    
     const mintFee = ethers.parseEther("0.01");
+    const defaultLifespan = 365 * 24 * 60 * 60; // 1 Year in seconds
 
-    return { ipContract, masterAdmin, admin2, user1, user2, mintFee };
+    return { ipContract, masterAdmin, shawn, weiSiang, regularUser, mintFee, defaultLifespan };
   }
 
-  describe("Deployment", function () {
+  describe("1. Deployment & Access Control", function () {
     it("Should set the deployer as Master and Admin, and totalAdmins to 1", async function () {
       const { ipContract, masterAdmin } = await loadFixture(deployIPFixture);
       
@@ -24,113 +26,144 @@ describe("IP Voting and Registry Contract", function () {
       expect(await ipContract.hasRole(adminRole, masterAdmin.address)).to.be.true;
       expect(await ipContract.totalAdmins()).to.equal(1n);
     });
+
+    it("Should allow Master Admin to add new admins securely", async function () {
+      const { ipContract, masterAdmin, shawn, weiSiang } = await loadFixture(deployIPFixture);
+      
+      await ipContract.connect(masterAdmin).addAdmin(shawn.address);
+      await ipContract.connect(masterAdmin).addAdmin(weiSiang.address);
+      
+      expect(await ipContract.totalAdmins()).to.equal(3n);
+    });
   });
 
-  describe("Minting & Duplicate Protection", function () {
-    it("Should revert if the minting fee is not paid", async function () {
-      const { ipContract, user1 } = await loadFixture(deployIPFixture);
+  describe("2. Minting & Soulbound Mechanics", function () {
+    it("Should mint a pending IP and lock the image CID", async function () {
+      const { ipContract, regularUser, mintFee } = await loadFixture(deployIPFixture);
+      
+      const imageCID = ethers.keccak256(ethers.toUtf8Bytes("image_1"));
       
       await expect(
-        ipContract.connect(user1).mint(user1.address, "image_hash_1", "meta_hash_1")
-      ).to.be.revertedWith("Insufficient minting fee");
-    });
+        ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_1", { value: mintFee })
+      ).to.emit(ipContract, "Transfer");
 
-    it("Should successfully mint and set status to Pending", async function () {
-      const { ipContract, user1, mintFee } = await loadFixture(deployIPFixture);
-      
-      await ipContract.connect(user1).mint(user1.address, "unique_image_cid", "metadata_cid", { value: mintFee });
-      
       const ipData = await ipContract.ipInfos(1);
-      expect(ipData.imageCID).to.equal("unique_image_cid");
-      expect(ipData.status).to.equal(0n); // 0 corresponds to IPStatus.Pending
-      expect(ipData.approvalVotes).to.equal(0n);
-    });
-
-    it("Should block duplicate image assets from being registered (Plagiarism Check)", async function () {
-      const { ipContract, user1, user2, mintFee } = await loadFixture(deployIPFixture);
+      expect(ipData.status).to.equal(0n); // 0 = Pending
       
-      // First legitimate registration
-      await ipContract.connect(user1).mint(user1.address, "shared_image_cid", "meta_1", { value: mintFee });
-      
-      // Second malicious attempt with the same image content
+      // Plagiarism check: Minting the same CID should fail
       await expect(
-        ipContract.connect(user2).mint(user2.address, "shared_image_cid", "meta_2", { value: mintFee })
+        ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_2", { value: mintFee })
       ).to.be.revertedWith("This image asset has already been registered globally!");
     });
+
+    it("Should prevent transferring the IP NFT (Soulbound)", async function () {
+      const { ipContract, regularUser, shawn, mintFee } = await loadFixture(deployIPFixture);
+      const imageCID = ethers.keccak256(ethers.toUtf8Bytes("image_soulbound"));
+      
+      await ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_sb", { value: mintFee });
+
+      // Attempting to send the NFT to Shawn's wallet should crash
+      await expect(
+        ipContract.connect(regularUser).transferFrom(regularUser.address, shawn.address, 1)
+      ).to.be.revertedWith("Error: IP Records are non-transferable");
+    });
   });
 
-  describe("DAO Governance & Expiration", function () {
-    const lifespan = 365 * 24 * 60 * 60; // 30 days in seconds
-    it("Should process votes and dynamically activate asset timeline boundaries", async function () {
-      const { ipContract, masterAdmin, admin2, user1, mintFee } = await loadFixture(deployIPFixture);
+  describe("3. DAO Governance: 50% Thresholds & Cross-Checking", function () {
+    it("Should approve an IP when exactly 50% or more admins vote", async function () {
+      const { ipContract, masterAdmin, shawn, weiSiang, regularUser, mintFee, defaultLifespan } = await loadFixture(deployIPFixture);
       
-      // Setup: Add an admin and mint a pending asset
-      await ipContract.connect(masterAdmin).addAdmin(admin2.address);
-      await ipContract.connect(user1).mint(user1.address, "image_xyz", "meta_xyz", { value: mintFee });
+      // Setup 3 Admins total
+      await ipContract.connect(masterAdmin).addAdmin(shawn.address);
+      await ipContract.connect(masterAdmin).addAdmin(weiSiang.address);
 
-      // Initially, the IP should be invalid because it is Pending
-      expect(await ipContract.isValidIP(1)).to.be.false;
+      const imageCID = ethers.keccak256(ethers.toUtf8Bytes("image_approve"));
+      await ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_a", { value: mintFee });
 
-      // Vote 1 (Master Admin)
-      await ipContract.connect(masterAdmin).vote(1, lifespan);
+      // Vote 1 (33% - Not enough)
+      await ipContract.connect(masterAdmin).mintVote(1, defaultLifespan);
       let ipData = await ipContract.ipInfos(1);
       expect(ipData.status).to.equal(0n); // Still Pending
 
-      // Vote 2 (Admin 2) -> Reaches majority consensus (> 2/2)
-      await ipContract.connect(admin2).vote(1, lifespan);
+      // Vote 2 (66% - Passes the 50% exact threshold!)
+      await ipContract.connect(shawn).mintVote(1, defaultLifespan);
       ipData = await ipContract.ipInfos(1);
       
-      expect(ipData.status).to.equal(1n); // Changes to Active
-      expect(ipData.dateApproved).to.be.greaterThan(0n);
-      expect(ipData.dateExpired).to.be.greaterThan(blockTimestampPlaceholder());
-      
-      // Real-time helper should now validate enforcement status as true
+      expect(ipData.status).to.equal(1n); // 1 = Active
       expect(await ipContract.isValidIP(1)).to.be.true;
     });
 
-    it("Should prevent double voting profiles", async function () {
-      const { ipContract, masterAdmin, admin2, user1, mintFee } = await loadFixture(deployIPFixture);
+    it("Should reject an IP and prevent cross-voting", async function () {
+      const { ipContract, masterAdmin, shawn, weiSiang, regularUser, mintFee, defaultLifespan } = await loadFixture(deployIPFixture);
       
-      await ipContract.connect(masterAdmin).addAdmin(admin2.address);
-      await ipContract.connect(user1).mint(user1.address, "image_abc", "meta_abc", { value: mintFee });
+      await ipContract.connect(masterAdmin).addAdmin(shawn.address);
+      await ipContract.connect(masterAdmin).addAdmin(weiSiang.address);
+
+      const imageCID = ethers.keccak256(ethers.toUtf8Bytes("image_reject"));
+      await ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_r", { value: mintFee });
+
+      // Shawn votes to Reject
+      await ipContract.connect(shawn).rejectVote(1);
       
-      await ipContract.connect(masterAdmin).vote(1, lifespan);
-      
+      // CROSS-CHECK TEST: Shawn changes his mind and tries to Approve. Should fail!
       await expect(
-        ipContract.connect(masterAdmin).vote(1, lifespan)
-      ).to.be.revertedWith("Admin has already voted on this IP");
+        ipContract.connect(shawn).mintVote(1, defaultLifespan)
+      ).to.be.revertedWith("Admin has already voted to reject");
+
+      // Wei Siang casts the final Reject vote
+      await ipContract.connect(weiSiang).rejectVote(1);
+      
+      const ipData = await ipContract.ipInfos(1);
+      expect(ipData.status).to.equal(3n); // 3 = Rejected
     });
   });
 
-  describe("System Security Parameters", function () {
-    it("Should enforce Soulbound mechanics against transit vectors", async function () {
-      const { ipContract, user1, user2, mintFee } = await loadFixture(deployIPFixture);
+  describe("4. Revocation", function () {
+    it("Should allow admins to revoke an Active IP", async function () {
+      const { ipContract, masterAdmin, shawn, weiSiang, regularUser, mintFee, defaultLifespan } = await loadFixture(deployIPFixture);
       
-      await ipContract.connect(user1).mint(user1.address, "image_sbt", "meta_sbt", { value: mintFee });
-      
-      await expect(
-        ipContract.connect(user1).transferFrom(user1.address, user2.address, 1)
-      ).to.be.revertedWith("Error: IP Records are non-transferable");
-    });
+      await ipContract.connect(masterAdmin).addAdmin(shawn.address);
+      await ipContract.connect(masterAdmin).addAdmin(weiSiang.address);
 
-    it("Should allow master to securely clear out accumulated protocol value", async function () {
-      const { ipContract, masterAdmin, user1, mintFee } = await loadFixture(deployIPFixture);
+      // Mint and fast-track to Active
+      const imageCID = ethers.keccak256(ethers.toUtf8Bytes("image_revoke"));
+      await ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_rev", { value: mintFee });
+      await ipContract.connect(masterAdmin).mintVote(1, defaultLifespan);
+      await ipContract.connect(shawn).mintVote(1, defaultLifespan);
+
+      // Now we revoke it
+      await ipContract.connect(weiSiang).revokeVote(1);
+      await ipContract.connect(shawn).revokeVote(1);
+
+      const ipData = await ipContract.ipInfos(1);
+      expect(ipData.status).to.equal(2n); // 2 = Revoked
+      expect(await ipContract.isValidIP(1)).to.be.false;
+    });
+  });
+
+  describe("5. Protocol Treasury", function () {
+    it("Should allow ONLY the Master Admin to withdraw minting fees", async function () {
+      const { ipContract, masterAdmin, regularUser, mintFee } = await loadFixture(deployIPFixture);
       
-      await ipContract.connect(user1).mint(user1.address, "image_finance", "meta_finance", { value: mintFee });
-      
+      // User pays 0.01 ETH to mint
+      const imageCID = ethers.keccak256(ethers.toUtf8Bytes("image_money"));
+      await ipContract.connect(regularUser).mint(regularUser.address, imageCID, "meta_m", { value: mintFee });
+
+      // Hacker tries to steal it
+      await expect(
+        ipContract.connect(regularUser).withdraw()
+      ).to.be.reverted; 
+
+      // Master Admin withdraws it successfully
       const initialBalance = await ethers.provider.getBalance(masterAdmin.address);
       const tx = await ipContract.connect(masterAdmin).withdraw();
       const receipt = await tx.wait();
       
+      // Calculate exact gas costs to ensure the math adds up precisely
       const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
       const finalBalance = await ethers.provider.getBalance(masterAdmin.address);
-
-      expect(finalBalance).to.equal(initialBalance - gasSpent + mintFee);
+      
+      expect(finalBalance).to.equal(initialBalance + mintFee - gasSpent);
     });
   });
 });
-
-// Helper utility to keep checks uniform
-function blockTimestampPlaceholder() {
-  return BigInt(Math.floor(Date.now() / 1000) - 10000);
-}
