@@ -29,7 +29,7 @@ export default function Dropdown({ changeTypeFunction }: DropdownProps) {
                     type="button"
                     className="px-4 py-3 
                                 m-2 h-10 w-100 
-                                flex items-center justify-center gap-2 
+                                flex items-center justify-between gap-2 
                                 rounded-3xl border-2
                                 border-textbox bg-textbox
                                 hover:border-foreground
@@ -44,7 +44,7 @@ export default function Dropdown({ changeTypeFunction }: DropdownProps) {
                         alt="dropdown icon"
                         width={20}
                         height={20}
-                        className="shrink-0"
+                        className={`shrink-0 ${isOpen ? 'rotate-235' : 'rotate-45'}`}
                     />
                     </div>
                 </button>

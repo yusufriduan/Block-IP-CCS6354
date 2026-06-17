@@ -260,11 +260,23 @@ export default function RegisterIP() {
                             </div>
                         </div>
 
+                        {isSubmitting && (
+                        <div className="flex flex-row items-center gap-8 mt-2">
+                            <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p className="font-mono text-lg text-black">
+                                Waiting for blockchain confirmation...
+                            </p>
+                        </div>
+                        )}
+
                         <div id="submit-section" className="flex flex-wrap item-center justify-end justify-items-end gap-40">
                             <button 
                                 type="submit" 
                                 disabled={isSubmitting}
-                                className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50"
+                                className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve cursor-pointer hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50"
                             >
                                 <h1 className="font-mono text-xl tracking-wider">{isSubmitting ? "Submitting..." : "Submit"}</h1>
                             </button>
@@ -274,7 +286,7 @@ export default function RegisterIP() {
                                 onClick={handleClear}
                                 className={`box-border h-10 w-40 border-4 border-radius rounded-3xl border-reject bg-reject 
                                         hover:border-[#E90000] hover:bg-[#E90000] transition-opacity duration-200
-                                        ${ipName.trim() ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                                        ${ipName.trim() ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
                             >
                                 <h1 className="font-mono text-xl tracking-wider">Clear All</h1>
                             </button>
