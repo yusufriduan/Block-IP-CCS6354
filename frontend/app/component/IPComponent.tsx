@@ -126,7 +126,7 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
                 const ipInfo = await contract.ipInfos(tokenId);
                 data.ipExpiredDate = Number(ipInfo.dateExpired);
                 setCurrentExpiredDate(data.ipExpiredDate);
-                setIsRejected(ipStatuses[data.ipStatus] === "Rejected")
+                setIsRejected(ipStatuses[ipInfo.ipStatus] === "Rejected")
             }
 
             setVoteStatus(true);
@@ -155,7 +155,7 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
                 // check if the ip is rejected or approved on sc
                 const ipInfo = await contract.ipInfos(tokenId);
-                setIsRevoked(ipStatuses[data.ipStatus] === "Revoked")
+                setIsRevoked(ipStatuses[ipInfo.ipStatus] === "Revoked")
             }
 
             setRevokeStatus(true);
