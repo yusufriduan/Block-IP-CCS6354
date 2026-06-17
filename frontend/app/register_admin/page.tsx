@@ -83,7 +83,7 @@ export default function RegisterAdmin(){
                     <button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="box-border h-10 w-36 mt-16 font-mono cursor-pointer border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50 disabled:bg-gray-400"
+                        className="box-border h-10 w-36 mt-16 font-mono cursor-pointer border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50 disabled:bg-gray-400 disabled:border-gray-400"
                     >
                         Submit
                     </button>

@@ -12,6 +12,7 @@ interface headerProps {
 
 export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
 
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isNotAdmin, setIsNotAdmin] = useState<boolean>(true);
     const [isNotOwner, setIsNotOwner] = useState<boolean>(true);
 
@@ -27,14 +28,19 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                 const isOwnerJson = await isOwnerCheck.json();
                 if(isOwnerJson.isOwner){
                     setIsNotOwner(false);
+                    
                 }
+                setIsLoading(false);
             } else {
                 setIsNotAdmin(true);
                 setIsNotOwner(true);
+                setIsLoading(false);
             }
         }
         
+        setIsLoading(true);
         adminCheck();
+        
     }, [])
 
     return (
@@ -43,8 +49,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                 <h1 className="font-mono text-4xl tracking-wider font-semibold">BlockIP</h1>
             </div>
             <div id="header-right" className="relative float-end mr-16 h-full flex flex-row items-center">
-                
-                {isNotAdmin && !isRegister && (
+                {!isLoading && isNotAdmin && !isRegister && (
                     <div className="group">
                         <Link href="/registerIP" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Register IP
@@ -53,7 +58,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                     </div>
                 )}
 
-                {isNotAdmin && !isDashboard && (
+                {!isLoading && isNotAdmin && !isDashboard && (
                     <div className="group">
                         <Link href="/" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Dashboard
@@ -62,7 +67,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                     </div>
                 )}
 
-                {!isNotAdmin && !isDashboard && (
+                {!isLoading && !isNotAdmin && !isDashboard && (
                     <div className="group">
                         <Link href="/admin" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Admin Dashboard
@@ -71,7 +76,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                     </div>
                 )}
 
-                {!isNotOwner && !isRegister && (
+                {!isLoading && !isNotOwner && !isRegister && (
                     <div className="group">
                         <Link href="/register_admin" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Register Admins
@@ -80,7 +85,7 @@ export const Header = ({isDashboard, isRegister, isCredit} : headerProps) => {
                     </div>
                 )}
 
-                {!isCredit && (
+                {!isLoading && !isCredit && (
                     <div className="group">
                         <Link href="/credits" className="relative mr-8 font-mono text-xl font-semibold cursor-pointer">
                             Credits
