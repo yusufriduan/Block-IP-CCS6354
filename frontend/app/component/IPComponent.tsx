@@ -4,6 +4,8 @@ import Image from "next/image"
 import "../globals.css";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ethers } from "ethers";
+import contractArtifact from "@/lib/contracts/IP.json";
 
 interface IPComponentData{
     ipName: string,
@@ -25,7 +27,7 @@ interface IPComponentProp{
     wallet: string
 }
 
-const ipStatuses = ["Pending", "Active", "Revoked"];
+const ipStatuses = ["Pending", "Active", "Revoked", "Rejected"];
 
 export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
@@ -33,6 +35,11 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
     const [voteStatus, setVoteStatus] = useState<boolean>(false);
     const [totalAdmins, setTotalAdmins] = useState<number>(1);
+    const [currentExpiredDate, setCurrentExpiredDate] = useState<number>(data.ipExpiredDate);
+    const [currentApprovalVotes, setCurrentApprovalVotes] = useState<number>(data.approvalVotes);
+    const [isRejected, setIsRejected] = useState<boolean>(ipStatuses[data.ipStatus] === "Rejected");
+    const [revokeStatus, setRevokeStatus] = useState<boolean>(false);
+    const [isRevoked, setIsRevoked] = useState<boolean>(ipStatuses[data.ipStatus] == "Revoked");
 
     function handleOnClick(){
         const dataJson = JSON.stringify(data);
@@ -41,26 +48,122 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
     useEffect(() => {
         async function getHasVoted(tokenId: string, wallet: string) {
-            if(isAdmin){
-                const res = await fetch(`/api/getHasApproved?tokenId=${tokenId}&wallet=${wallet}`);
-                const requestData = await res.json();
-                if(requestData.hasVoted){
-                    setVoteStatus(true);
-                }
-
-                const res2 = await fetch("/api/getTotalAdmins");
-                const requestData2 = await res2.json();
-                if(requestData2.totalAdmins){
-                    setTotalAdmins(requestData2.totalAdmins);
-                }
+            const res = await fetch(`/api/getHasApproved?tokenId=${tokenId}&wallet=${wallet}`);
+            const requestData = await res.json();
+            if(requestData.hasVoted){
+                setVoteStatus(true);
             }
         }
         
-        getHasVoted(data.tokenId, wallet);
+        async function getHasRevoked(tokenId: string, wallet: string){
+            const req = await fetch(`/api/getVotedForRevoke?tokenId=${tokenId}&wallet=${wallet}`);
+            const res = await req.json();
+            if(res.getHasRevoked){
+                setRevokeStatus(true);
+            }
+        }
+
+        async function getTotalAdmins(){
+            const req = await fetch("/api/getTotalAdmins");
+            const res = await req.json();
+            if(res.totalAdmins){
+                setTotalAdmins(res.totalAdmins);
+            }
+        }
+
+        if(isAdmin){
+            getTotalAdmins();
+            if(data.ipExpiredDate === 0){
+                getHasVoted(data.tokenId, wallet);
+            } else {
+                if(data.ipApprovedDate != 0){
+                    getHasRevoked(data.tokenId, wallet);
+                } 
+            }
+        }
+        
 
         const ipContainer = document.querySelector("#ip-component-container") as HTMLDivElement;
         ipContainer.addEventListener('click', handleOnClick);
     }, [])
+
+    async function vote(decision: string, ipType: string, tokenId: number){
+        let lifespan;
+
+        if(ipType == "Copyright"){
+            lifespan = 70*365*24*60*60;
+        } else if (ipType == "Trademark"){
+            lifespan = 10*365*24*60*60;
+        } else if (ipType == "Patent"){
+            lifespan = 25*365*24*60*60;
+        }
+
+
+        try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+        
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+
+            if(signer && contractAddress){
+                const contract = new ethers.Contract(
+                    contractAddress,
+                    contractArtifact.abi,
+                    signer
+                );
+
+                if(decision == "Approve"){
+                    await contract.mintVote(tokenId, lifespan);
+                    setCurrentApprovalVotes(currentApprovalVotes+1);
+                    data.approvalVotes++;
+                } else if (decision == "Reject"){
+                    await contract.rejectVote(tokenId);
+                    setIsRejected(true);
+                }
+
+                // check if the ip is rejected or approved on sc
+                const ipInfo = await contract.ipInfos(tokenId);
+                data.ipExpiredDate = Number(ipInfo.dateExpired);
+                setCurrentExpiredDate(data.ipExpiredDate);
+                setIsRejected(ipStatuses[data.ipStatus] === "Rejected")
+            }
+
+            setVoteStatus(true);
+            alert("Successfully voted!");
+        } catch (e) {
+            alert("Admin has already voted before!");
+        }
+    }
+
+    async function revoke(tokenId: number){
+        try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+        
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+
+            if(signer && contractAddress){
+                const contract = new ethers.Contract(
+                    contractAddress,
+                    contractArtifact.abi,
+                    signer
+                );
+
+                await contract.revokeVote(tokenId);
+
+                // check if the ip is rejected or approved on sc
+                const ipInfo = await contract.ipInfos(tokenId);
+                setIsRevoked(ipStatuses[data.ipStatus] === "Revoked")
+            }
+
+            setRevokeStatus(true);
+            alert("Successfully voted!");
+        } catch (e) {
+            alert("Admin has already voted before!");
+        }
+    }
 
     return(
         <div id="ip-component-container" className="flex flex-col h-48 w-72 bg-accent m-4 rounded-2xl cursor-pointer">
@@ -74,24 +177,34 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
                 <p className="font-mono text-xs">Date Posted: {new Date(data.ipPostedDate*1000).toLocaleString()}</p>
                 {
                     isAdmin ? 
-                        data.ipApprovedDate === 0 ? 
+                        currentExpiredDate === 0 ? 
                             (
                                 voteStatus ? 
-                                    <div className="flex flex-row justify-center items-center w-full mt-1">
-                                        <button className="mr-4 h-6 w-20 bg-green-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Approve</button>
-                                        <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Reject</button>
+                                    <div id="progress-bar" className="w-4/5 bg-red-200 rounded-full h-8">
+                                        <div className="bg-green-200 h-8 rounded-full" style={{width: `${data.approvalVotes / totalAdmins}`}}>
+                                            <p>Total Votes: {data.approvalVotes}</p>
+                                        </div>
                                     </div>
                                 :
-                                <div id="progress-bar" className="w-4/5 bg-red-200 rounded-full h-8">
-                                    <div className="bg-green-200 h-8 rounded-full" style={{width: `${data.approvalVotes / totalAdmins}`}}>
-                                        <p>Total Votes: {data.approvalVotes}</p>
-                                    </div>
+                                
+                                <div className="flex flex-row justify-center items-center w-full mt-1">
+                                    <button className="mr-4 h-6 w-20 bg-green-400 p-2 flex justify-center items-center rounded-lg cursor-pointer" onClick={() => {vote("Approve", data.ipType, Number(data.tokenId))}}>Approve</button>
+                                    <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer" onClick={() => {vote("Reject", data.ipType, Number(data.tokenId))}}>Reject</button>
                                 </div>
                             )
                         :
-                        <div className="flex flex-row justify-center items-center w-full mt-1">
-                            <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Revoke</button>
-                        </div>
+                        isRejected ? null :
+                        (
+                            isRevoked ? null :
+                                revokeStatus ? 
+                                    <div className="flex flex-row justify-center items-center w-full mt-1">
+                                        <button className="ml-4 h-6 w-20 bg-gray-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Voted to Revoke</button>
+                                    </div>
+                                :
+                                    <div className="flex flex-row justify-center items-center w-full mt-1">
+                                        <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer" onClick={() => {revoke(Number(data.tokenId))}}>Revoke</button>
+                                    </div>
+                        )
                     :
                     null
                 }

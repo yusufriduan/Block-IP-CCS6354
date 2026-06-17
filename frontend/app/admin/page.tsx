@@ -76,24 +76,6 @@ export default function admin() {
             // Stop if it fails
             if (!fullAddress) return;
 
-            // 2. Check Admin Status
-            try {
-                const isAdminData = await fetch("/api/adminAuth", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({wallet: fullAddress}),
-                    credentials: "include",
-                });
-                const isAdminJson = await isAdminData.json();
-                
-                if (isAdminJson.redirect) {
-                    router.push(isAdminJson.redirect);
-                    return; // Stop execution if redirecting
-                }
-            } catch (error) {
-                console.error("Failed to check admin status", error);
-            }
-
             // 3. Load the IPs!
             getAllSystemIPs();
         };
@@ -132,6 +114,7 @@ export default function admin() {
     }, []);
 
     async function getAllSystemIPs(){
+        console.log("Hi");
         const ipList = await fetch("/api/retrieveAll");
         const ipListJson = await ipList.json();
         if(ipListJson.error){
