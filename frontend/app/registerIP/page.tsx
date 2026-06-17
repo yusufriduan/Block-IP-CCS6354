@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import ConnectionFailFallback from "../component/ConnectionFailFallback";
 import ConnectingInProgress from "../component/ConnectingInProgress";
 import contractArtifact from "@/lib/contracts/IP.json";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 export default function RegisterIP() {
     const [connectedStatus, setConnectedStatus] = useState<boolean>(false);
@@ -210,7 +210,7 @@ export default function RegisterIP() {
                             <h1 className="font-mono font-bold text-4xl tracking-wider">Register Intellectual Property</h1>
                         </div>
 
-                        <div id="content-section" className="m-10 box-border h-80 w-260 border-4 rounded-3xl border-secondary bg-secondary grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container">
+                        <div id="content-section" className="m-7 box-border h-80 w-260 border-4 rounded-3xl border-secondary bg-secondary grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container backdrop-blur-md">
                             <div>
                                 <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Name</h1>
                             </div>
@@ -219,7 +219,7 @@ export default function RegisterIP() {
                                     type="text" 
                                     value={ipName}
                                     placeholder="IP Name"
-                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center"
+                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
                                     onChange={(e) => setIpName(e.target.value)}
                                 />
                             </div>
@@ -241,7 +241,7 @@ export default function RegisterIP() {
                                     type="text" 
                                     value={ipDesc}
                                     placeholder="IP Description"
-                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center"
+                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
                                     onChange={(e) => setIpDesc(e.target.value)}
                                 />
                             </div>
@@ -260,11 +260,23 @@ export default function RegisterIP() {
                             </div>
                         </div>
 
+                        {isSubmitting && (
+                        <div className="flex flex-row items-center gap-8 mt-2">
+                            <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p className="font-mono text-lg text-black">
+                                Waiting for blockchain confirmation...
+                            </p>
+                        </div>
+                        )}
+
                         <div id="submit-section" className="flex flex-wrap item-center justify-end justify-items-end gap-40">
                             <button 
                                 type="submit" 
                                 disabled={isSubmitting}
-                                className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50"
+                                className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve cursor-pointer hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50"
                             >
                                 <h1 className="font-mono text-xl tracking-wider">{isSubmitting ? "Submitting..." : "Submit"}</h1>
                             </button>
@@ -272,7 +284,9 @@ export default function RegisterIP() {
                             <button 
                                 type="button" 
                                 onClick={handleClear}
-                                className="box-border h-10 w-40 border-4 border-radius rounded-3xl border-reject bg-reject hover:border-[#E90000] hover:bg-[#E90000]"
+                                className={`box-border h-10 w-40 border-4 border-radius rounded-3xl border-reject bg-reject 
+                                        hover:border-[#E90000] hover:bg-[#E90000] transition-opacity duration-200
+                                        ${ipName.trim() ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
                             >
                                 <h1 className="font-mono text-xl tracking-wider">Clear All</h1>
                             </button>
