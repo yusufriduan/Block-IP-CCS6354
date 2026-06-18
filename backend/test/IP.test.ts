@@ -69,7 +69,7 @@ describe("IP Voting and Registry Contract", function () {
     });
   });
 
-  describe("3. DAO Governance: 50% Thresholds & Cross-Checking", function () {
+  describe("3. Consortium Governance: 50% Thresholds & Cross-Checking", function () {
     it("Should approve an IP when exactly 50% or more admins vote", async function () {
       const { ipContract, masterAdmin, shawn, weiSiang, regularUser, mintFee, defaultLifespan } = await loadFixture(deployIPFixture);
       

@@ -130,7 +130,7 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
     }
 
 
-    /// @notice Fetches all IPs owned by a user
+    /// @notice Fetches all IPs owned by the user
     /// @dev Leverages ERC-721 base methods alongside custom runtime struct assembly
     /// @param user User Wallet address
     function getUserIPs(address user) public view returns (IPInfo[] memory) {
@@ -146,6 +146,16 @@ contract IP is ERC721URIStorage, AccessControl, ReentrancyGuard {
             }
         }
         return userIPs;
+    }
+
+    /// @notice Fetches all IPs in the system
+    /// @dev Accessible by Admin only
+    function getAllIPs() public onlyRole(ADMIN_ROLE) view returns (IPInfo[] memory) {
+        IPInfo[] memory allIPs = new IPInfo[](_nextTokenId);
+        for (uint256 i = 1; i <= _nextTokenId; i++) {
+            allIPs[i - 1] = ipInfos[i];
+        }
+        return allIPs;
     }
 
     /// @notice Allows admins to vote on a active IP to be revoke
