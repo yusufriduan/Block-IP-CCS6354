@@ -8,14 +8,12 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 
 export default function admin() {
-    const router = useRouter();
     const [isConnected, setIsConnected] = useState<boolean | null>(null);
     const [walletStartAddress, setWalletStartAddress] = useState<String>("");
     const [walletEndAddress, setWalletEndAddress] = useState<String>("");
     const [walletMidStartAddress, setWalletMidStartAddress] = useState<String>("");
     const [walletMidEndAddress, setWalletMidEndAddress] = useState<String>("");
     const [walletFullAddress, setWalletFullAddress] = useState<string>("");
-    const [totalPage, setTotalPage] = useState<number>(1);
     const [approvedIPs, setApprovedIPs] = useState<ipInfo[]>([]);
     const [pendingIPs, setPendingIPs] = useState<ipInfo[]>([]);
     const [curPointerApproved, setCurPointerApproved] = useState<number>(1);

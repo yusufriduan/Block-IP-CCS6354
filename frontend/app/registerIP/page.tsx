@@ -139,7 +139,7 @@ export default function RegisterIP() {
 
                 } catch (exception) {
                     console.log("Some error occurred: ", exception);
-                    alert("Network error occurred during upload.");
+                    alert("Transaction failed. Check your wallet if you have enough ETH!");
                 }
 
             } else {
