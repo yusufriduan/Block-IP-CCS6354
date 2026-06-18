@@ -6,32 +6,31 @@ export async function GET() {
   const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
 
         const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+        const METAMASK_PRIVATE_KEY = process.env.METAMASK_PRIVATE_KEY;
 
-    if(contractAddress){
+    if(contractAddress && METAMASK_PRIVATE_KEY){
+        const signer = new ethers.Wallet(METAMASK_PRIVATE_KEY, provider);
         const contract = new ethers.Contract(
             contractAddress,
             contractArtifact.abi, 
-            provider
+            signer
         );
 
         try {
-            const nextTokenId = await contract._nextTokenId();
-            const totalTokens = Number(nextTokenId);
 
-            if (totalTokens === 0) return [];
-
-            const promises = [];
-            for (let i = 1; i <= totalTokens; i++) {
-            promises.push(contract.ipInfos(i));
-            }
-
-            const rawResults = await Promise.all(promises);
+            const rawResults = await contract.getAllIPs();
+            
 
             const allIPs = rawResults.map(async (intellectualProperty: any) => {
                 try {
                     const metadataURI = await contract.tokenURI(intellectualProperty.tokenId);
-                    const metadataUrl = metadataURI.replace("ipfs://", process.env.NEXT_PUBLIC_PINATA_GATEWAY);
-                    
+                    const owner = await contract.ownerOf(intellectualProperty.tokenId);
+                    const cleanGateway = process.env.NEXT_PUBLIC_PINATA_GATEWAY?.endsWith('/') 
+                        ? process.env.NEXT_PUBLIC_PINATA_GATEWAY 
+                        : `${process.env.NEXT_PUBLIC_PINATA_GATEWAY}/`;
+                    const cid = metadataURI.replace("ipfs://", "");
+                    const metadataUrl = `https://${cleanGateway}ipfs/${cid}`;
+
                     const response = await fetch(metadataUrl);
 
                     if (!response.ok) {
@@ -42,15 +41,16 @@ export async function GET() {
                     
                     return {
                         ipName: pinataData.ipName || "Unnamed Asset",
-                        ipDescription: pinataData.ipDescription || "No description provided",
+                        ipDescription: pinataData.ipDescription || "N/A",   
                         ipType: pinataData.ipType || "No type selected",
                         ipPostedDate: pinataData.ipPostedDate || "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
                         ipStatus: Number(intellectualProperty.status),
                         tokenId: intellectualProperty.tokenId.toString(),
-                        ipAsset: pinataData.asset_url || "N/A",
+                        ipAsset: `https://${pinataData.asset_url}` || "N/A",
                         approvalVotes: Number(intellectualProperty.approvalVotes),
+                        owner: owner
                     };
 
                 } catch (error) {
@@ -58,15 +58,16 @@ export async function GET() {
 
                     return {
                         ipName: "Error Loading Data",
-                        ipDescription: "Could not retrieve cloud file metadata matching this token.",
+                        ipDescription: "Error loading Data",
                         ipType: "Error loading type",
                         ipPostedDate: "N/A",
                         ipApprovedDate: Number(intellectualProperty.dateApproved),
                         ipExpiredDate: Number(intellectualProperty.dateExpired),
                         ipStatus: Number(intellectualProperty.status),
                         tokenId: intellectualProperty.tokenId.toString(),
-                        ipAsset: intellectualProperty.imageCID,
+                        ipAsset: '/images/example.jpg',
                         approvalVotes: Number(intellectualProperty.approvalVotes),
+                        owner: null
                     };
                 }
             });

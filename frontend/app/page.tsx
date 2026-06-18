@@ -23,17 +23,17 @@ export default function Home() {
   const [loadingIP, setLoadingIP] = useState<boolean>(true);
 
   interface ipInfo{
-    ipName: string,
-    ipDescription: string,
-    ipType: string,
-    ipPostedDate: number,
-    ipApprovedDate: number,
-    ipExpiredDate: number,
-    ipStatus: number,
-    tokenId: string,
-    ipAsset: string,
-    approvalVotes: number,
-    owner: string
+      ipName: string;
+      ipDescription: string;
+      ipType: string;
+      ipPostedDate: number;
+      ipApprovedDate: number;
+      ipExpiredDate: number;
+      ipStatus: number;
+      tokenId: string;
+      ipAsset: string;
+      approvalVotes: number;
+      owner: string;
   }
 
   useEffect(() => {

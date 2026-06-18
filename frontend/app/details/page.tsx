@@ -50,7 +50,7 @@ export default function Details() {
 
     return (
         <Suspense fallback={<p>Loading...</p>}>
-            <div className="h-screen w-screen flex flex-col overflow-auto sm:overflow-hidden">
+            <div className="h-screen max-w-screen flex flex-col overflow-auto sm:overflow-hidden">
                 <Header isDashboard={false} isRegister={false} isCredit={false} />
                 <div id="dashboard-ui" className="flex flex-col w-screen mt-8 h-screen justify-center items-center bg-background">
                     <div id="overlay-content" className="relative mt-8 flex flex-col w-7/8 h-11/12 bg-secondary z-50 rounded-2xl">
@@ -61,11 +61,13 @@ export default function Details() {
                             <div className="grid grid-cols-2 gap-4 items-center">
                                 <h1 className="font-mono text-2xl font-bold justify-self-end">Title:</h1>
                                 <p className="text-xl font-medium font-mono ml-1 justify-self-start">{data.ipName}</p>
+                                <p className="font-mono text-2xl font-bold justify-self-end">IP Description:</p>
+                                <p className="text-xl font-medium font-mono ml-1 justify-self-start">{data.ipDescription}</p>
                                 <p className="font-mono text-2xl font-bold justify-self-end">IP Type:</p>
                                 <p className="text-xl font-medium font-mono ml-1 justify-self-start">{data.ipType}</p>
                                 <p className="font-mono text-2xl font-bold justify-self-end">IP Status:</p>
                                 <p className="text-xl font-medium font-mono ml-1 justify-self-start">
-                                    {data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate !== 0
+                                    {data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate !== 0 && ipStatuses[data.ipStatus] != "Revoked"
                                         ? "Expired"
                                         : ipStatuses[data.ipStatus]}
                                 </p>

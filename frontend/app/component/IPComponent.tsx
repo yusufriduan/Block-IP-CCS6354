@@ -8,23 +8,23 @@ import { ethers } from "ethers";
 import contractArtifact from "@/lib/contracts/IP.json";
 
 interface IPComponentData{
-    ipName: string,
-    ipDescription: string,
-    ipType: string,
-    ipPostedDate: number,
-    ipApprovedDate: number,
-    ipExpiredDate: number,
-    ipStatus: number,
-    tokenId: string,
-    ipAsset: string,
-    approvalVotes: number,
-    owner: string 
+    ipName: string;
+    ipDescription: string;
+    ipType: string;
+    ipPostedDate: number;
+    ipApprovedDate: number;
+    ipExpiredDate: number;
+    ipStatus: number;
+    tokenId: string;
+    ipAsset: string;
+    approvalVotes: number;
+    owner: string;
 }
 
 interface IPComponentProp{
-    data: IPComponentData,
-    isAdmin: boolean,
-    wallet: string
+    data: IPComponentData;
+    isAdmin: boolean;
+    wallet: string;
 }
 
 const ipStatuses = ["Pending", "Active", "Revoked", "Rejected"];
@@ -35,11 +35,12 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
     const [voteStatus, setVoteStatus] = useState<boolean>(false);
     const [totalAdmins, setTotalAdmins] = useState<number>(1);
-    const [currentExpiredDate, setCurrentExpiredDate] = useState<number>(data.ipExpiredDate);
     const [currentApprovalVotes, setCurrentApprovalVotes] = useState<number>(data.approvalVotes);
-    const [isRejected, setIsRejected] = useState<boolean>(ipStatuses[data.ipStatus] === "Rejected");
     const [revokeStatus, setRevokeStatus] = useState<boolean>(false);
-    const [isRevoked, setIsRevoked] = useState<boolean>(ipStatuses[data.ipStatus] == "Revoked");
+    const [isApproving, setIsApproving] = useState<boolean>(false);
+    const [isRejecting, setIsRejecting] = useState<boolean>(false);
+    const [isRevoking, setIsRevoking] = useState<boolean>(false);
+    const [disableButton, setDisableButton] = useState<boolean>(false);
 
     function handleOnClick(){
         const dataJson = JSON.stringify(data);
@@ -48,7 +49,7 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
 
     useEffect(() => {
         async function getHasVoted(tokenId: string, wallet: string) {
-            const res = await fetch(`/api/getHasApproved?tokenId=${tokenId}&wallet=${wallet}`);
+            const res = await fetch(`/api/getHasVoted?tokenId=${tokenId}&wallet=${wallet}`);
             const requestData = await res.json();
             if(requestData.hasVoted){
                 setVoteStatus(true);
@@ -68,6 +69,7 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
             const res = await req.json();
             if(res.totalAdmins){
                 setTotalAdmins(res.totalAdmins);
+                console.log(res.totalAdmins);
             }
         }
 
@@ -81,13 +83,10 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
                 } 
             }
         }
-        
-
-        const ipContainer = document.querySelector("#ip-component-container") as HTMLDivElement;
-        ipContainer.addEventListener('click', handleOnClick);
     }, [])
 
     async function vote(decision: string, ipType: string, tokenId: number){
+        setDisableButton(true);
         let lifespan;
 
         if(ipType == "Copyright"){
@@ -114,30 +113,33 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
                 );
 
                 if(decision == "Approve"){
-                    await contract.mintVote(tokenId, lifespan);
+                    setIsApproving(true);
+                    const tx = await contract.mintVote(tokenId, lifespan);
+                    await tx.wait();
                     setCurrentApprovalVotes(currentApprovalVotes+1);
+                    setIsApproving(false);
                     data.approvalVotes++;
                 } else if (decision == "Reject"){
-                    await contract.rejectVote(tokenId);
-                    setIsRejected(true);
+                    setIsRejecting(true);
+                    const tx = await contract.rejectVote(tokenId);
+                    await tx.wait();
+                    setIsRejecting(false);
                 }
 
-                // check if the ip is rejected or approved on sc
-                const ipInfo = await contract.ipInfos(tokenId);
-                data.ipExpiredDate = Number(ipInfo.dateExpired);
-                setCurrentExpiredDate(data.ipExpiredDate);
-                setIsRejected(ipStatuses[ipInfo.ipStatus] === "Rejected")
+                window.location.reload();
             }
 
             setVoteStatus(true);
             alert("Successfully voted!");
         } catch (e) {
-            alert("Admin has already voted before!");
+            alert("Voting failed! Check if you has sufficient ETH!");
         }
+        setDisableButton(false);
     }
 
     async function revoke(tokenId: number){
         try {
+            setDisableButton(true);
             await window.ethereum.request({ method: "eth_requestAccounts" });
         
             const provider = new ethers.BrowserProvider(window.ethereum);
@@ -151,63 +153,63 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
                     signer
                 );
 
-                await contract.revokeVote(tokenId);
-
-                // check if the ip is rejected or approved on sc
-                const ipInfo = await contract.ipInfos(tokenId);
-                setIsRevoked(ipStatuses[ipInfo.ipStatus] === "Revoked")
+                setIsRevoking(true);
+                const tx = await contract.revokeVote(tokenId);
+                await tx.wait();
+                setIsRevoking(false);
             }
 
             setRevokeStatus(true);
             alert("Successfully voted!");
         } catch (e) {
-            alert("Admin has already voted before!");
+            alert("Transaction failed! Please check if you have enough ETH!");
         }
+        setDisableButton(false);
+        window.location.reload();
     }
 
     return(
-        <div id="ip-component-container" className="flex flex-col h-48 w-72 bg-accent m-4 rounded-2xl cursor-pointer">
+        <div id="ip-component-container" className="flex flex-col h-48 w-72 bg-accent m-4 rounded-2xl cursor-pointer" onClick={handleOnClick}>
             <div id="ip-image" className="relative h-2/5 w-full top-0 left-0 rounded-t-2xl overflow-hidden">
                 <Image src={data.ipAsset} alt="ip-asset" fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" loading="eager"></Image>
             </div>
             <div id="ip-details" className="h-3/5 w-full flex flex-col items-start p-2">
                 <h1 id="ip-title" className="font-mono font-semibold text-md">{data.ipName}</h1>
                 <p className="font-mono text-xs">Type: {data.ipType}</p>
-                <p className="font-mono text-xs">Status: <span className={(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0) ? "Expired" : ipStatuses[data.ipStatus]}>{(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0) ? "Expired" : ipStatuses[data.ipStatus]}</span></p>
+                <p className="font-mono text-xs">Status: <span className={(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0 && ipStatuses[data.ipStatus] != "Revoked") ? "Expired" : ipStatuses[data.ipStatus]}>{(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0 && ipStatuses[data.ipStatus] != "Revoked") ? "Expired" : ipStatuses[data.ipStatus]}</span></p>
                 <p className="font-mono text-xs">Date Posted: {new Date(data.ipPostedDate*1000).toLocaleString()}</p>
-                {
-                    isAdmin ? 
-                        currentExpiredDate === 0 ? 
-                            (
-                                voteStatus ? 
-                                    <div id="progress-bar" className="w-4/5 bg-red-200 rounded-full h-8">
-                                        <div className="bg-green-200 h-8 rounded-full" style={{width: `${data.approvalVotes / totalAdmins}`}}>
-                                            <p>Total Votes: {data.approvalVotes}</p>
+                <div className="w-full flex justify-center items-center">
+                   {
+                        isAdmin ? 
+                            data.ipExpiredDate === 0 ? 
+                                (
+                                    voteStatus ? 
+                                        <div id="progress-bar" className="w-4/5 bg-red-200 rounded-full h-8">
+                                            <div className="bg-green-200 h-8 rounded-full flex items-center" style={{width: `${(data.approvalVotes / totalAdmins) * 100}%`}}>
+                                                <p className="text-sm m-2">Total Votes: {data.approvalVotes}</p>
+                                            </div>
                                         </div>
+                                    :
+                                    
+                                    <div className="flex flex-row justify-center items-center w-full mt-1">
+                                        <button disabled={disableButton} className="mr-4 h-6 w-20 bg-green-400 p-2 flex justify-center items-center rounded-lg cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed" onClick={(e) => {e.stopPropagation(); vote("Approve", data.ipType, Number(data.tokenId))}}>{ isApproving ? "Approving..." : "Approve" }</button>
+                                        <button disabled={disableButton} className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed" onClick={(e) => {e.stopPropagation(); vote("Reject", data.ipType, Number(data.tokenId))}}>{ isRejecting ? "Rejecting..." : "Reject" }</button>
                                     </div>
-                                :
-                                
+                                )
+                            :
+                            revokeStatus ? 
                                 <div className="flex flex-row justify-center items-center w-full mt-1">
-                                    <button className="mr-4 h-6 w-20 bg-green-400 p-2 flex justify-center items-center rounded-lg cursor-pointer" onClick={() => {vote("Approve", data.ipType, Number(data.tokenId))}}>Approve</button>
-                                    <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer" onClick={() => {vote("Reject", data.ipType, Number(data.tokenId))}}>Reject</button>
+                                    <button className="ml-4 h-6 w-36 bg-gray-400 p-2 flex justify-center items-center rounded-lg cursor-not-allowed" disabled={true}>Voted to Revoke</button>
                                 </div>
-                            )
+                            :
+                                <div className="flex flex-row justify-center items-center w-full mt-1">
+                                    <button disabled={disableButton} className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed" onClick={(e) => {e.stopPropagation(); revoke(Number(data.tokenId))}}>{ isRevoking ? "Revoking..." : "Revoke" }</button>
+                                </div>
                         :
-                        isRejected ? null :
-                        (
-                            isRevoked ? null :
-                                revokeStatus ? 
-                                    <div className="flex flex-row justify-center items-center w-full mt-1">
-                                        <button className="ml-4 h-6 w-20 bg-gray-400 p-2 flex justify-center items-center rounded-lg cursor-pointer">Voted to Revoke</button>
-                                    </div>
-                                :
-                                    <div className="flex flex-row justify-center items-center w-full mt-1">
-                                        <button className="ml-4 h-6 w-20 bg-red-400 p-2 flex justify-center items-center rounded-lg cursor-pointer" onClick={() => {revoke(Number(data.tokenId))}}>Revoke</button>
-                                    </div>
-                        )
-                    :
-                    null
-                }
+                        null
+                    } 
+                </div>
+                
                 
             </div>
         </div>

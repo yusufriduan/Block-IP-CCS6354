@@ -18,7 +18,7 @@ export async function GET(request: NextRequest){
                 );
                 const adminCount = await contract.totalAdmins();
                 return NextResponse.json(
-                    {totalAdmins: adminCount},
+                    {totalAdmins: Number(adminCount)},
                     {status: 200}
                 )
             } else {
