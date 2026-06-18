@@ -34,7 +34,9 @@ export async function  GET(request: NextRequest) {
                     contractArtifact.abi, 
                     provider
                 );
-                const hasVoted = await contract.hasVoted(tokenId, wallet);
+                const hasApproved = await contract.hasVoted(tokenId, wallet);
+                const hasRejected = await contract.hasRejectVoted(tokenId, wallet);
+                const hasVoted = hasApproved || hasRejected;
                 return NextResponse.json(
                     {hasVoted: hasVoted},
                     {status: 200}

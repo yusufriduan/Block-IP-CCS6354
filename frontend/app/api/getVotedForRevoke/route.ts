@@ -2,8 +2,26 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ethers } from "ethers";
 import contractArtifact from "@/lib/contracts/IP.json";
 
-export async function GET(request: NextRequest){
+export async function GET(request: NextRequest) {
     try{
+        const { searchParams } = new URL(request.url);
+        const tokenId = searchParams.get("tokenId");
+        const wallet = searchParams.get("wallet");
+
+        if(!tokenId){
+            return NextResponse.json(
+                {error: "No ip token found"},
+                {status: 400}
+            )
+        }
+
+        if(!wallet){
+            return NextResponse.json(
+                {error: "No wallet found"},
+                {status: 400}
+            )
+        }
+
         const adminCookie = request.cookies.get("admin_session");
         if(adminCookie){
             const provider = new ethers.JsonRpcProvider(process.env.RPC_SERVER_URL);
@@ -16,9 +34,9 @@ export async function GET(request: NextRequest){
                     contractArtifact.abi, 
                     provider
                 );
-                const adminCount = await contract.totalAdmins();
+                const hasRevoked = await contract.hasRevokeVoted(tokenId, wallet);
                 return NextResponse.json(
-                    {totalAdmins: Number(adminCount)},
+                    {hasRevoked: hasRevoked},
                     {status: 200}
                 )
             } else {
@@ -33,10 +51,7 @@ export async function GET(request: NextRequest){
                 {status: 400}
             )
         }
-    } catch {
-        return NextResponse.json(
-            {error: "Internal Server Error"},
-            {status: 500}
-        )
+    } catch (e) {
+
     }
 }
