@@ -142,8 +142,8 @@ export default function admin() {
                     User <span className="inline-block">{walletStartAddress}</span><span className="block sm:inline-block">{walletMidStartAddress}</span><span className="block sm:inline-block">{walletMidEndAddress}</span><span className="block md:inline-block">{walletEndAddress}&apos;s</span> dashboard
                     </h1>
                     
-                    <div className="flex flex-col justify-between min-h-full gap-2 flex-1">
-                        <div className="flex flex-wrap w-full min-h-1/2 bg-background/30 rounded-2xl shadow-lg p-4">
+                    <div className="flex flex-col justify-start h-full gap-2 flex-1">
+                        <div className="flex flex-wrap flex-1 w-full h-full bg-background/30 rounded-2xl shadow-lg p-4">
                             <p className="font-mono text-md text-foreground ml-14 mb-2 text-shadow-white text-shadow-xs">All Approved Intellectual Properties:</p>
                             <div className="h-full w-full mb-4 flex justify-center items-center">
                                 {
@@ -172,7 +172,7 @@ export default function admin() {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap w-full min-h-1/2 bg-background/30 rounded-2xl shadow-lg p-4">
+                        <div className="flex flex-wrap flex-1 w-full h-full bg-background/30 rounded-2xl shadow-lg p-4">
                             <p className="font-mono text-md text-foreground ml-14 mb-2 text-shadow-white text-shadow-xs"> Intellectual Property Awaiting Approval:</p>
                             <div className="h-full w-full mb-4 flex justify-center items-center">
                                 {

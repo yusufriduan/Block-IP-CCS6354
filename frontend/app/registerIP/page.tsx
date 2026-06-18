@@ -211,57 +211,56 @@ export default function RegisterIP() {
                         </div>
 
                         <div id="content-section" className="m-7 box-border h-80 w-260 border-4 rounded-3xl border-secondary bg-secondary grid grid-flow-row grid-cols-2 items-flex-start justify-flex-start grid-container backdrop-blur-md">
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Name</h1>
                             </div>
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <input 
                                     type="text" 
                                     value={ipName}
                                     placeholder="IP Name"
-                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
+                                    className="box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
                                     onChange={(e) => setIpName(e.target.value)}
                                 />
                             </div>
                             
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-2">Register IP Type</h1>
                             </div>
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <div id="dropdown box">
                                     <Dropdown changeTypeFunction={(e) => setIpType(e)} />
                                 </div>
                             </div>
 
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-center row-start-1">Intellectual Property Description</h1>
                             </div>
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <input 
                                     type="text" 
                                     value={ipDesc}
                                     placeholder="IP Description"
-                                    className="m-4 box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
+                                    className="box-border h-10 w-100 border-2 rounded-3xl border-textbox bg-textbox row-start-1 hover:border-foreground px-4 py-3 font-mono text-xl tracking-wider place-content-center text-white"
                                     onChange={(e) => setIpDesc(e.target.value)}
                                 />
                             </div>
 
-                            <div>
+                            <div className="flex flex-col justify-center">
                                 <h1 className="m-4 font-mono font-bold text-xl tracking-wider place-content-start">Intellectual Property File</h1>
                             </div>
-                            <div>
+                            <div className="flex flex-col justify-end">
                                 <input 
                                     type="file" 
                                     id="insert_ip" 
-                                    className="m-3 h-10 w-100 font-mono text-sm border border-textbox rounded-3xl cursor-pointer bg-textbox focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground file:cursor-pointer file:border-0 file:py-3 file:px-3 file:mr-4 file:bg-background hover:file:bg-gray-200"
+                                    className="h-10 w-100 font-mono text-sm border border-textbox rounded-3xl cursor-pointer bg-textbox focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground file:cursor-pointer file:border-0 file:py-3 file:px-3 file:mr-4 file:bg-background hover:file:bg-gray-200"
                                     onChange={(e) => setIpFile(e.target.files?.[0] ?? null)}
                                 />
-                                <p className="m-6 mt-1 text-sm" id="file_input_help">PNG or JPG(MAX. 800x400px).</p>
+                                <p className="m-6 mt-1 mb-2 text-sm font-mono" id="file_input_help">PNG or JPG only.</p>
                             </div>
                         </div>
 
-                        {isSubmitting && (
-                        <div className="flex flex-row items-center gap-8 mt-2">
+                        <div className={`flex flex-row items-center gap-8 mt-8 mb-8 ${isSubmitting ? "" : "opacity-0 pointer-events-none"}`}>
                             <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -270,13 +269,12 @@ export default function RegisterIP() {
                                 Waiting for blockchain confirmation...
                             </p>
                         </div>
-                        )}
 
                         <div id="submit-section" className="flex flex-wrap item-center justify-end justify-items-end gap-40">
                             <button 
                                 type="submit" 
                                 disabled={isSubmitting}
-                                className="box-border h-10 w-30 border-4 border-radius rounded-3xl border-approve bg-approve cursor-pointer hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50"
+                                className="box-border h-10 w-fit pl-2 pr-2 border-4 border-radius rounded-3xl border-approve bg-approve cursor-pointer hover:border-[#00EE00] hover:bg-[#00EE00] disabled:opacity-50"
                             >
                                 <h1 className="font-mono text-xl tracking-wider">{isSubmitting ? "Submitting..." : "Submit"}</h1>
                             </button>
@@ -284,7 +282,7 @@ export default function RegisterIP() {
                             <button 
                                 type="button" 
                                 onClick={handleClear}
-                                className={`box-border h-10 w-40 border-4 border-radius rounded-3xl border-reject bg-reject 
+                                className={`box-border h-10 w-fit pl-2 pr-2 border-4 border-radius rounded-3xl border-reject bg-reject 
                                         hover:border-[#E90000] hover:bg-[#E90000] transition-opacity duration-200
                                         ${ipName.trim() ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
                             >
