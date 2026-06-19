@@ -284,7 +284,7 @@ export default function RegisterIP() {
                                 onClick={handleClear}
                                 className={`box-border h-10 w-fit pl-2 pr-2 border-4 border-radius rounded-3xl border-reject bg-reject 
                                         hover:border-[#E90000] hover:bg-[#E90000] transition-opacity duration-200
-                                        ${ipName.trim() ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                                        ${(ipName.trim() || ipDesc.trim() || ipFile || ipType.trim())? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
                             >
                                 <h1 className="font-mono text-xl tracking-wider">Clear All</h1>
                             </button>
