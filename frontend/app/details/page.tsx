@@ -24,8 +24,8 @@ const ipStatuses = ["Pending", "Active", "Revoked", "Rejected"];
 
 const formatDate = (timestamp: number) => {
     if (timestamp === 0) return "N/A";
-    const d = new Date(timestamp * 1000).toLocaleString();
-    return d.slice(0, 16) + d.slice(-2);
+    const d = new Date(timestamp * 1000);
+    return new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short', hour12: true, timeZone: 'Asia/Kuala_Lumpur' }).format(d);
 };
 
 function DetailsContent() {

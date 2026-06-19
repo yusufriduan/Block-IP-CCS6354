@@ -177,7 +177,7 @@ export const IPComponent = ({data, isAdmin, wallet}: IPComponentProp) => {
                 <h1 id="ip-title" className="font-mono font-semibold text-md">{data.ipName}</h1>
                 <p className="font-mono text-xs">Type: {data.ipType}</p>
                 <p className="font-mono text-xs">Status: <span className={(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0 && ipStatuses[data.ipStatus] != "Revoked") ? "Expired" : ipStatuses[data.ipStatus]}>{(data.ipExpiredDate < Math.floor(Date.now() / 1000) && data.ipExpiredDate != 0 && ipStatuses[data.ipStatus] != "Revoked") ? "Expired" : ipStatuses[data.ipStatus]}</span></p>
-                <p className="font-mono text-xs">Date Posted: {new Date(data.ipPostedDate*1000).toLocaleString()}</p>
+                <p className="font-mono text-xs">Date Posted: {new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short', hour12: true, timeZone: 'Asia/Kuala_Lumpur' }).format(new Date(data.ipPostedDate*1000))}</p>
                 <div className="w-full flex justify-center items-center">
                    {
                         isAdmin ? 
