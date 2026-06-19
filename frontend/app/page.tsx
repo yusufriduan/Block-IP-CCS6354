@@ -165,8 +165,7 @@ export default function Home() {
                       :
                       (
                         ipDataList && ipDataList.length > 0 ? 
-                      <div className="w-11/12">
-                        
+                      <div className="w-11/12 h-7/8">
                           <div className="h-full w-full rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-2 place-items-center">
                           {ipDataList.slice((curPointer-1) * 6, ((curPointer-1) * 6) + 6).map((ip, index) => (
                             <IPComponent data={ip} isAdmin={false} wallet={fullAddress} key={ip.tokenId || index}/>
