@@ -148,22 +148,22 @@ export default function admin() {
                             <div className="h-full w-full mb-4 flex justify-center items-center">
                                 {
                                 approvedIPs && approvedIPs.length > 0 ? 
-                                    <>
+                                    <div className="flex flex-col">
                                         <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 place-items-center">
                                             {approvedIPs.slice((curPointerApproved-1) * 3, ((curPointerApproved-1) * 3) + 3).map((ip, index) => (
                                                 <IPComponent data={ip} isAdmin={true} wallet={walletFullAddress} key={ip.tokenId || index}/>
                                             ))} 
                                         </div>
-                                        {approvedIPs.length > 6 && (
+                                        {approvedIPs.length > 0 && (
                                             <div className="flex flex-row w-full justify-center items-center">
-                                                <div className="grid grid-cols-3 place-items-center bg-background p-1 mb-2">
-                                                    <button disabled={curPointerApproved === 1} id="back-btn" onClick={() => setCurPointerApproved(curPointerApproved-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
-                                                    <p>{curPointerApproved}</p>
-                                                    <button disabled={curPointerApproved === Math.ceil(approvedIPs.length/3)} id="next-btn" onClick={() => setCurPointerApproved(curPointerApproved+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
-                                                </div>
+                                                <div className="grid grid-cols-3 place-items-center bg-background p-1 mt-2">
+                                                    <button disabled={curPointerApproved === 1} id="back-btn" onClick={() => setCurPointerApproved(curPointerApproved - 1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
+                                                        <p>{curPointerApproved}</p>
+                                                    <button disabled={curPointerApproved === Math.ceil(approvedIPs.length / 3)} id="next-btn" onClick={() => setCurPointerApproved(curPointerApproved + 1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
+                                                </div>             
                                             </div>
                                         )}
-                                    </>
+                                    </div>
                                     :
                                     <div className="flex justify-center items-center flex-col">
                                         <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">{ loadingIPs ? "Fetching IPs..." : "No IP has been requested yet." }</p>
@@ -177,22 +177,22 @@ export default function admin() {
                             <div className="h-full w-full mb-4 flex justify-center items-center">
                                 {
                                 pendingIPs && pendingIPs.length > 0 ? 
-                                    <>
+                                    <div className="flex flex-col">
                                         <div className="h-full w-11/12 rounded-2xl bg-secondary/10 backdrop-blur-none grid grid-cols-3 grid-rows-1 place-items-center">
                                             {pendingIPs.slice((curPointerPending-1) * 6, ((curPointerPending-1) * 6) + 6).map((ip, index) => (
                                                 <IPComponent data={ip} isAdmin={true} wallet={walletFullAddress} key={ip.tokenId || index}/>
                                             ))}
                                         </div>
-                                        {pendingIPs.length > 6 && (
+                                        {pendingIPs.length > 0 && (
                                             <div className="flex flex-row w-full justify-center items-center">
                                                 <div className="grid grid-cols-3 grid-rows-1 place-items-center bg-background p-1 mb-2">
                                                     <button disabled={curPointerPending === 1} id="back-btn" onClick={() => setCurPointerPending(curPointerPending-1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">back</button>
                                                     <p>{curPointerPending}</p>
-                                                    <button disabled={curPointerPending === Math.ceil(pendingIPs.length/3)} id="next-btn" onClick={() => setCurPointerPending(curPointerPending+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
+                                                    <button disabled={curPointerPending === Math.ceil(pendingIPs.length / 6)} id="next-btn" onClick={() => setCurPointerPending(curPointerPending+1)} className="cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400">next</button>
                                                 </div>
                                             </div>
                                         )}
-                                    </>
+                                    </div>
                                     :
                                     <div className="flex justify-center items-center flex-col">
                                     <p className="font-bold font-mono text-3xl text-foreground text-shadow-white text-shadow-xs">{ loadingIPs ? "Fetching IPs..." : "No IP has been requested yet." }</p>
